@@ -1,308 +1,548 @@
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, ArrowRight, Sparkles, Clock, Star } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUpRight,
+  Compass,
+  Headphones,
+  Play,
+  Radio,
+  Sparkles,
+  Waves,
+} from 'lucide-react';
+import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
-import { HeroCarousel } from '@/components/HeroCarousel';
-import { Carousel } from '@/components/Carousel';
-import { ContentCard } from '@/components/ContentCard';
-import { CategoryCardItem } from '@/components/CategoryCardItem';
-import {
-  heroSlides,
-  featuredItems,
-  categoryCards,
-  editorialItems,
-  showcaseItems,
-  comingSoonItems,
-} from '@/data/content';
+import { IMAGES } from '@/data/content';
+
+const spotlightCards = [
+  {
+    title: 'Stories',
+    subtitle: 'Featured editorial experiences',
+    image: IMAGES.landscape4,
+    path: '/stories',
+    action: 'Explore stories',
+    className: 'spotlight-card--stories',
+  },
+  {
+    title: 'Originals',
+    subtitle: 'Coming soon',
+    image: IMAGES.gradient4,
+    path: '/videos',
+    action: 'Discover originals',
+    className: 'spotlight-card--originals',
+  },
+  {
+    title: 'Live Experiences',
+    subtitle: 'Coming soon',
+    image: IMAGES.concert2,
+    path: '/live',
+    action: 'Explore live',
+    className: 'spotlight-card--live',
+  },
+];
+
+const exploreCards = [
+  {
+    title: 'Watch',
+    description: 'A considered home for visual stories, films and fresh perspectives.',
+    image: IMAGES.bokeh7,
+    path: '/videos',
+    icon: Play,
+  },
+  {
+    title: 'Podcasts',
+    description: 'Thoughtful voices, ideas and conversations to take with you.',
+    image: IMAGES.mic1,
+    path: '/podcasts',
+    icon: Headphones,
+  },
+  {
+    title: 'Live',
+    description: 'Be part of shared moments as they unfold, wherever you are.',
+    image: IMAGES.concert3,
+    path: '/live',
+    icon: Radio,
+  },
+  {
+    title: 'Stories',
+    description: 'Editorial discoveries shaped by a point of view and a sense of place.',
+    image: IMAGES.art1,
+    path: '/stories',
+    icon: Compass,
+  },
+  {
+    title: 'Originals',
+    description: 'New ideas and original experiences are taking shape at Lumera.',
+    image: IMAGES.gradient5,
+    path: '/videos',
+    icon: Sparkles,
+  },
+];
+
+const experiencePanels = [
+  {
+    title: 'WATCH',
+    description: 'Find a fresh perspective in every frame.',
+    image: IMAGES.bokeh2,
+    path: '/videos',
+  },
+  {
+    title: 'LISTEN',
+    description: 'Make room for voices worth spending time with.',
+    image: IMAGES.mic3,
+    path: '/podcasts',
+  },
+  {
+    title: 'LIVE',
+    description: 'Meet in the moment. Feel something together.',
+    image: IMAGES.concert5,
+    path: '/live',
+  },
+  {
+    title: 'DISCOVER',
+    description: 'Follow your curiosity somewhere unexpected.',
+    image: IMAGES.landscape3,
+    path: '/stories',
+  },
+];
+
+const editorialCards = [
+  {
+    title: 'Color in a quieter key',
+    category: 'Visual notes',
+    description: 'A study of soft palettes, shifting light and the moods they leave behind.',
+    image: IMAGES.gradient2,
+    path: '/stories',
+    className: 'editorial-card--feature',
+  },
+  {
+    title: 'The space between sounds',
+    category: 'Listening room',
+    description: 'On pauses, textures and the details that bring a soundscape to life.',
+    image: IMAGES.mic5,
+    path: '/podcasts',
+    className: '',
+  },
+  {
+    title: 'A study in movement',
+    category: 'Field notes',
+    description: 'Light and motion, seen from a different angle.',
+    image: IMAGES.landscape5,
+    path: '/stories',
+    className: '',
+  },
+  {
+    title: 'Light, collected',
+    category: 'Image journal',
+    description: 'An open-ended collection of color, form and fleeting impressions.',
+    image: IMAGES.bokeh5,
+    path: '/videos',
+    className: '',
+  },
+  {
+    title: 'An open invitation',
+    category: 'At Lumera',
+    description: 'A place to find a new perspective, at your own pace.',
+    image: IMAGES.art4,
+    path: '/studio',
+    className: '',
+  },
+];
+
+const upcomingExperiences = [
+  { title: 'Original Films', image: IMAGES.gradient7, path: '/videos' },
+  { title: 'New Podcasts', image: IMAGES.gradient3, path: '/podcasts' },
+  { title: 'Live Experiences', image: IMAGES.bokeh8, path: '/live' },
+  { title: 'Exclusive Stories', image: IMAGES.gradient6, path: '/stories' },
+];
+
+function applyCardTilt(event: ReactPointerEvent<HTMLElement>) {
+  if (event.pointerType === 'touch') return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+  const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+  event.currentTarget.style.setProperty('--tilt-x', `${-y * 2.5}deg`);
+  event.currentTarget.style.setProperty('--tilt-y', `${x * 2.5}deg`);
+  event.currentTarget.style.setProperty('--pointer-x', `${(x + 0.5) * 100}%`);
+  event.currentTarget.style.setProperty('--pointer-y', `${(y + 0.5) * 100}%`);
+}
+
+function resetCardTilt(event: ReactPointerEvent<HTMLElement>) {
+  event.currentTarget.style.setProperty('--tilt-x', '0deg');
+  event.currentTarget.style.setProperty('--tilt-y', '0deg');
+}
+
+function ExperienceSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [travelDistance, setTravelDistance] = useState(0);
+  const [activePanel, setActivePanel] = useState(0);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  });
+  const trackX = useTransform(scrollYProgress, (progress) => -travelDistance * progress);
+
+  useEffect(() => {
+    const measureTrack = () => {
+      if (trackRef.current && stageRef.current) {
+        setTravelDistance(
+          Math.max(0, trackRef.current.scrollWidth - stageRef.current.clientWidth),
+        );
+      }
+    };
+
+    measureTrack();
+    window.addEventListener('resize', measureTrack);
+    return () => window.removeEventListener('resize', measureTrack);
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, 'change', (progress) => {
+    setActivePanel(Math.min(experiencePanels.length - 1, Math.floor(progress * experiencePanels.length)));
+  });
+
+  return (
+    <section
+      ref={sectionRef}
+      className="experience-story bg-[#f6f3ed]"
+      aria-label="The Lumera Experience"
+    >
+      <div ref={stageRef} className="experience-story__stage">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col justify-center px-6 md:px-10">
+          <div className="mb-7 flex items-end justify-between gap-6 md:mb-9">
+            <div>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                The Lumera Experience
+              </p>
+              <h2 className="font-display text-4xl font-semibold leading-tight tracking-tight-display text-ink md:text-5xl">
+                One place. Many ways in.
+              </h2>
+            </div>
+            <span className="hidden items-center gap-2 pb-2 text-xs text-slate-custom sm:flex">
+              <ArrowDown size={14} className="rotate-[-90deg]" />
+              Scroll to explore
+            </span>
+          </div>
+
+          <div className="experience-story__viewport">
+            <motion.div ref={trackRef} style={{ x: trackX }} className="experience-story__track">
+              {experiencePanels.map((panel, index) => (
+                <Link
+                  key={panel.title}
+                  to={panel.path}
+                  onMouseEnter={() => setActivePanel(index)}
+                  onFocus={() => setActivePanel(index)}
+                  className={`experience-panel ${
+                    activePanel === index ? 'experience-panel--active' : ''
+                  }`}
+                  style={{ backgroundImage: `url(${panel.image})` }}
+                >
+                  <span className="experience-panel__index">0{index + 1}</span>
+                  <div className="experience-panel__content">
+                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-white/75">
+                      Lumera, your way
+                    </p>
+                    <h3 className="font-display text-4xl font-semibold tracking-tight-display text-white sm:text-5xl md:text-7xl">
+                      {panel.title}
+                    </h3>
+                    <p
+                      className={`experience-panel__description ${
+                        activePanel === index ? 'experience-panel__description--visible' : ''
+                      }`}
+                    >
+                      {panel.description}
+                    </p>
+                    <span className="experience-panel__arrow" aria-hidden="true">
+                      <ArrowUpRight size={20} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </motion.div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-2" aria-label={`Panel ${activePanel + 1} of 4`}>
+            {experiencePanels.map((panel, index) => (
+              <span
+                key={panel.title}
+                className={`experience-progress ${
+                  activePanel === index ? 'experience-progress--active' : ''
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function HomePage() {
   return (
     <PageWrapper>
-      {/* Hero */}
-      <HeroCarousel slides={heroSlides} />
-
-      {/* Featured Section */}
-      <section className="py-20 md:py-28 bg-ivory-gradient">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
+      <section className="home-hero relative flex min-h-[690px] items-center overflow-hidden md:min-h-[780px]">
+        <div className="home-hero__art" style={{ backgroundImage: `url(${IMAGES.bokeh9})` }} />
+        <div className="home-hero__wash" />
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 pb-12 pt-32 md:px-10 md:pt-36">
           <Reveal>
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={18} className="text-gold" />
-                  <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                    Curated for You
-                  </span>
-                </div>
-                <h2 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display">
-                  Featured This Week
-                </h2>
+            <div className="max-w-3xl">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/75 shadow-soft backdrop-blur-md">
+                <Sparkles size={13} className="text-gold-dark" />
+                A world of stories
               </div>
-              <Link
-                to="/videos"
-                className="hidden md:inline-flex items-center gap-2 text-ink text-sm font-medium hover:text-gold transition-colors group"
-              >
-                View All
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <h1 className="max-w-3xl font-display text-6xl font-semibold leading-[0.94] tracking-tight-display text-ink sm:text-7xl md:text-8xl">
+                Find your next
+                <br />
+                <span className="font-normal italic">point of view.</span>
+              </h1>
+              <p className="mt-7 max-w-xl text-base leading-relaxed text-ink/70 sm:text-lg">
+                Films, voices, live moments and ideas — thoughtfully brought together in one
+                bright new world.
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <Link to="/videos" className="home-magnetic-cta">
+                  <Play size={16} fill="currentColor" />
+                  Explore Lumera
+                  <ArrowRight size={16} className="home-cta-arrow" />
+                </Link>
+                <Link to="/stories" className="home-secondary-cta">
+                  Discover stories
+                  <ArrowUpRight size={16} className="home-cta-arrow" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+          <div className="absolute bottom-8 right-8 hidden items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-ink/45 md:flex">
+            <span>Curiosity looks good on you</span>
+            <span className="h-px w-12 bg-ink/25" />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-ivory-gradient py-20 md:py-28">
+        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
+          <Reveal>
+            <div className="mb-10 flex flex-col justify-between gap-5 md:mb-12 md:flex-row md:items-end">
+              <div>
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                  Lumera Spotlight
+                </p>
+                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-6xl">
+                  Discover What&apos;s Next
+                </h2>
+                <p className="mt-3 text-base text-slate-custom md:text-lg">
+                  A glimpse into the experiences coming to Lumera.
+                </p>
+              </div>
+              <Link to="/stories" className="home-text-link">
+                Find your next story <ArrowRight size={16} className="home-cta-arrow" />
               </Link>
             </div>
           </Reveal>
 
-          <Reveal delay={0.1}>
-            <Carousel>
-              {featuredItems.map((item, i) => (
-                <ContentCard key={item.id} item={item} index={i} variant="wide" />
-              ))}
-            </Carousel>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Category Cards */}
-      <section className="py-20 md:py-28 bg-cream">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <div className="text-center mb-14">
-              <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                Explore by Format
-              </span>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display mt-3">
-                Find Your Format
-              </h2>
-              <p className="text-slate-custom text-lg mt-3 max-w-xl mx-auto">
-                From cinematic films to live performances, every story has a home.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {categoryCards.map((cat, i) => (
-              <Reveal key={cat.id} delay={i * 0.08}>
-                <CategoryCardItem item={cat} index={i} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Editorial Grid */}
-      <section className="py-20 md:py-28 bg-ivory-2">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                  The Edit
-                </span>
-                <h2 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display mt-3">
-                  Editorial Picks
-                </h2>
-              </div>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {editorialItems.map((item, i) => (
-              <Reveal key={item.id} delay={i * 0.06}>
-                <article className="group cursor-pointer">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-ivory shadow-soft group-hover:shadow-elevated transition-all duration-500">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <p className="text-cream/70 text-[11px] uppercase tracking-wide-display mb-1">
-                        {item.category}
-                      </p>
-                      <h3 className="font-display text-xl font-bold text-cream tracking-tight-display">
-                        {item.title}
-                      </h3>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-start justify-between gap-4">
-                    <p className="text-slate-custom text-sm leading-relaxed">
-                      {item.description}
-                    </p>
-                    <span className="flex items-center gap-1 text-xs text-ink/40 whitespace-nowrap mt-0.5">
-                      <Clock size={12} /> {item.duration}
-                    </span>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Horizontal Showcase */}
-      <section className="py-20 md:py-28 bg-cream">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <div className="mb-10">
-              <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                Binge-Worthy
-              </span>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display mt-3">
-                Series & Showcases
-              </h2>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <Carousel>
-              {showcaseItems.map((item, i) => (
-                <ContentCard key={item.id} item={item} index={i} />
-              ))}
-            </Carousel>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Parallax Feature Banner */}
-      <section className="relative h-[420px] md:h-[520px] overflow-hidden">
-        <div
-          className="absolute inset-0 scale-110"
-          style={{
-            backgroundImage: `url(https://images.pexels.com/photos/6149187/pexels-photo-6149187.jpeg?auto=compress&cs=tinysrgb&w=1600)`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-ivory/90 via-ivory/50 to-transparent" />
-        <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-[1440px] mx-auto px-6 md:px-10 w-full">
-            <Reveal>
-              <div className="max-w-xl">
-                <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                  LUMERA Originals
-                </span>
-                <h2 className="font-display text-4xl md:text-6xl font-bold text-ink tracking-tight-display mt-3 mb-5 text-balance">
-                  Stories worth the spotlight.
-                </h2>
-                <p className="text-ink/70 text-lg mb-8 max-w-lg">
-                  Every LUMERA original is crafted with intention — cinematic, intimate, and unlike anything you've seen.
-                </p>
+          <div className="grid gap-5 md:grid-cols-3">
+            {spotlightCards.map((card, index) => (
+              <Reveal key={card.title} delay={index * 0.08}>
                 <Link
-                  to="/videos"
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-ink text-cream rounded-full font-medium hover:bg-gold transition-all duration-400 hover:shadow-elevated group"
+                  to={card.path}
+                  onPointerMove={applyCardTilt}
+                  onPointerLeave={resetCardTilt}
+                  className={`home-interactive-card spotlight-card ${card.className}`}
                 >
-                  <Play size={20} fill="currentColor" />
-                  Explore Originals
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  <span
+                    className="home-card-art"
+                    style={{ backgroundImage: `url(${card.image})` }}
+                    aria-hidden="true"
+                  />
+                  <span className="spotlight-card__eyebrow">{card.subtitle}</span>
+                  <span className="spotlight-card__copy">
+                    <span className="font-display text-4xl font-semibold tracking-tight-display sm:text-5xl">
+                      {card.title}
+                    </span>
+                    <span className="spotlight-card__action">
+                      {card.action}
+                      <ArrowUpRight size={18} className="home-cta-arrow" />
+                    </span>
+                  </span>
+                  <span className="spotlight-card__glow" />
                 </Link>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* Coming Soon */}
-      <section className="py-20 md:py-28 bg-ivory-gradient">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <div className="text-center mb-14">
-              <span className="text-xs font-semibold text-gold-dark uppercase tracking-wide-display">
-                On the Horizon
-              </span>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display mt-3">
-                Coming Soon
-              </h2>
-              <p className="text-slate-custom text-lg mt-3 max-w-xl mx-auto">
-                Premieres and originals arriving throughout 2026.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {comingSoonItems.map((item, i) => (
-              <Reveal key={item.id} delay={i * 0.08}>
-                <article className="group cursor-pointer">
-                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-ivory-2 shadow-soft group-hover:shadow-elevated transition-all duration-500">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
-                    {/* Shimmer effect on hover */}
-                    <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                    {item.badge && (
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide-display glass text-ink">
-                          {item.badge}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <p className="text-cream/70 text-[11px] uppercase tracking-wide-display mb-1">
-                        {item.category}
-                      </p>
-                      <h3 className="font-display text-2xl font-bold text-cream tracking-tight-display mb-2">
-                        {item.title}
-                      </h3>
-                      <p className="text-cream/60 text-xs leading-relaxed">
-                        {item.description}
-                      </p>
-                      <div className="mt-3 inline-flex items-center gap-1.5 text-gold-light text-xs">
-                        <Clock size={12} />
-                        <span>Notify Me</span>
-                      </div>
-                    </div>
-                  </div>
-                </article>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 md:py-32 bg-cream">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
+      <section className="bg-cream py-20 md:py-28">
+        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
           <Reveal>
-            <div className="relative rounded-3xl overflow-hidden bg-gold-sheen p-12 md:p-20 text-center">
-              {/* Decorative blobs */}
-              <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gold/10 blur-3xl float" />
-              <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-rose/10 blur-3xl float" style={{ animationDelay: '2s' }} />
-
-              <div className="relative z-10 max-w-2xl mx-auto">
-                <div className="flex justify-center gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={20} className="text-gold" fill="currentColor" />
-                  ))}
-                </div>
-                <h2 className="font-display text-4xl md:text-6xl font-bold text-ink tracking-tight-display mb-5 text-balance">
-                  Your next obsession starts here.
-                </h2>
-                <p className="text-ink/70 text-lg mb-10 max-w-lg mx-auto">
-                  Join LUMERA for premium cinematic storytelling, original series, and curated collections — all in one beautiful place.
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  <Link
-                    to="/videos"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-ink text-cream rounded-full font-medium hover:bg-gold transition-all duration-400 hover:shadow-elevated group"
-                  >
-                    <Play size={20} fill="currentColor" />
-                    Start Watching
-                  </Link>
-                  <Link
-                    to="/studio"
-                    className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-ink/20 text-ink font-medium hover:bg-ink hover:text-cream hover:border-ink transition-all duration-400"
-                  >
-                    Visit Studio
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
-              </div>
+            <div className="mb-10 text-center md:mb-14">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                Explore Lumera
+              </p>
+              <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-6xl">
+                Find Your Experience
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-base text-slate-custom md:text-lg">
+                Watch, listen, discover and experience stories your way.
+              </p>
             </div>
           </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {exploreCards.map((card, index) => {
+              const Icon = card.icon;
+
+              return (
+                <Reveal key={card.title} delay={index * 0.05}>
+                  <Link
+                    to={card.path}
+                    onPointerMove={applyCardTilt}
+                    onPointerLeave={resetCardTilt}
+                    className="home-interactive-card explore-card"
+                  >
+                    <span
+                      className="home-card-art"
+                      style={{ backgroundImage: `url(${card.image})` }}
+                      aria-hidden="true"
+                    />
+                    <span className="explore-card__icon">
+                      <Icon size={17} strokeWidth={1.7} />
+                    </span>
+                    <span className="explore-card__content">
+                      <span className="font-display text-3xl font-semibold tracking-tight-display">
+                        {card.title}
+                      </span>
+                      <span className="explore-card__description">{card.description}</span>
+                      <span className="explore-card__arrow">
+                        <ArrowUpRight size={18} />
+                      </span>
+                    </span>
+                  </Link>
+                </Reveal>
+              );
+            })}
+          </div>
         </div>
+      </section>
+
+      <ExperienceSection />
+
+      <section className="bg-ivory-gradient py-20 md:py-28">
+        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
+          <Reveal>
+            <div className="mb-10 flex flex-col justify-between gap-5 md:mb-12 md:flex-row md:items-end">
+              <div>
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                  The Lumera Edit
+                </p>
+                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-6xl">
+                  A little more to explore.
+                </h2>
+              </div>
+              <p className="max-w-sm text-base leading-relaxed text-slate-custom">
+                Visual notes, listening rooms and thoughtful ideas for wherever curiosity leads.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="editorial-grid">
+            {editorialCards.map((card, index) => (
+              <Reveal key={card.title} delay={index * 0.05} className={card.className}>
+                <Link
+                  to={card.path}
+                  onPointerMove={applyCardTilt}
+                  onPointerLeave={resetCardTilt}
+                  className="home-interactive-card editorial-card"
+                >
+                  <span
+                    className="home-card-art"
+                    style={{ backgroundImage: `url(${card.image})` }}
+                    aria-hidden="true"
+                  />
+                  <span className="editorial-card__content">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/75">
+                      {card.category}
+                    </span>
+                    <span className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight-display text-white md:text-3xl">
+                      {card.title}
+                    </span>
+                    <span className="editorial-card__description">{card.description}</span>
+                    <span className="editorial-card__arrow">
+                      <ArrowUpRight size={17} />
+                    </span>
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-cream py-20 md:py-28">
+        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
+          <Reveal>
+            <div className="mb-10 text-center md:mb-14">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                Coming Soon
+              </p>
+              <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-6xl">
+                The next chapter is taking shape.
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {upcomingExperiences.map((experience, index) => (
+              <Reveal key={experience.title} delay={index * 0.07}>
+                <Link
+                  to={experience.path}
+                  onPointerMove={applyCardTilt}
+                  onPointerLeave={resetCardTilt}
+                  className="home-interactive-card upcoming-card"
+                >
+                  <span
+                    className="home-card-art"
+                    style={{ backgroundImage: `url(${experience.image})` }}
+                    aria-hidden="true"
+                  />
+                  <span className="upcoming-card__index">0{index + 1}</span>
+                  <span className="upcoming-card__title">{experience.title}</span>
+                  <span className="upcoming-card__arrow">
+                    <ArrowUpRight size={18} />
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-ivory px-6 py-20 md:px-10 md:py-28">
+        <Reveal>
+          <div className="home-closing mx-auto max-w-[1360px] overflow-hidden rounded-[2rem] px-7 py-16 text-center md:px-16 md:py-24">
+            <div className="home-closing__orb home-closing__orb--one" />
+            <div className="home-closing__orb home-closing__orb--two" />
+            <div className="relative z-10 mx-auto max-w-2xl">
+              <Waves size={24} strokeWidth={1.4} className="mx-auto mb-6 text-gold-dark" />
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+                Made for curiosity
+              </p>
+              <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-6xl">
+                Your next perspective is waiting.
+              </h2>
+              <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-slate-custom md:text-lg">
+                Take the path that feels right. There&apos;s always something new to see, hear or
+                experience.
+              </p>
+              <Link to="/search" className="home-magnetic-cta mt-8">
+                Start exploring <ArrowRight size={16} className="home-cta-arrow" />
+              </Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
     </PageWrapper>
   );
