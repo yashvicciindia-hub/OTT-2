@@ -12,6 +12,7 @@ import { StudioPage } from '@/pages/StudioPage';
 import { SearchPage } from '@/pages/SearchPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { useEffect } from 'react';
+import { VideoLibraryProvider } from '@/context/VideoLibraryContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -43,14 +44,16 @@ function AnimatedRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <div className="min-h-screen bg-ivory">
-        <Navbar />
-        <main>
-          <AnimatedRoutes />
-        </main>
-        <Footer />
-      </div>
+      <VideoLibraryProvider>
+        <ScrollToTop />
+        <div className="min-h-screen bg-ivory">
+          <Navbar />
+          <main>
+            <AnimatedRoutes />
+          </main>
+          <Footer />
+        </div>
+      </VideoLibraryProvider>
     </BrowserRouter>
   );
 }
