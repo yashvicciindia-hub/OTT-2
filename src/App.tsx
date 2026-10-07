@@ -13,6 +13,8 @@ import { SearchPage } from '@/pages/SearchPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { useEffect } from 'react';
 import { VideoLibraryProvider } from '@/context/VideoLibraryContext';
+import { PodcastLibraryProvider } from '@/context/PodcastLibraryContext';
+import { MyListProvider } from '@/context/MyListContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -45,14 +47,18 @@ function App() {
   return (
     <BrowserRouter>
       <VideoLibraryProvider>
-        <ScrollToTop />
-        <div className="min-h-screen bg-ivory">
-          <Navbar />
-          <main>
-            <AnimatedRoutes />
-          </main>
-          <Footer />
-        </div>
+        <PodcastLibraryProvider>
+          <MyListProvider>
+            <ScrollToTop />
+            <div className="min-h-screen bg-ivory">
+              <Navbar />
+              <main>
+                <AnimatedRoutes />
+              </main>
+              <Footer />
+            </div>
+          </MyListProvider>
+        </PodcastLibraryProvider>
       </VideoLibraryProvider>
     </BrowserRouter>
   );

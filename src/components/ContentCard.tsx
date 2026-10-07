@@ -1,7 +1,6 @@
-import { Link } from 'react-router-dom';
 import { Play, Plus, Check, Star, Clock } from 'lucide-react';
-import { useState } from 'react';
 import type { MediaItem } from '@/data/content';
+import { useMyList } from '@/context/MyListContext';
 
 interface ContentCardProps {
   item: MediaItem;
@@ -9,8 +8,9 @@ interface ContentCardProps {
   index?: number;
 }
 
-export function ContentCard({ item, variant = 'default', index = 0 }: ContentCardProps) {
-  const [saved, setSaved] = useState(false);
+export function ContentCard({ item, variant = 'default' }: ContentCardProps) {
+  const { isSaved, toggleSave } = useMyList();
+  const saved = isSaved(item.id);
 
   const aspectClass =
     variant === 'wide' ? 'aspect-[16/10]' :
@@ -62,12 +62,15 @@ export function ContentCard({ item, variant = 'default', index = 0 }: ContentCar
         <button
           onClick={(e) => {
             e.preventDefault();
-            setSaved(!saved);
+            e.stopPropagation();
+            toggleSave(item);
           }}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full glass flex items-center justify-center text-ink hover:bg-ink hover:text-cream transition-all duration-300 opacity-0 group-hover:opacity-100"
-          aria-label={saved ? 'Remove from list' : 'Add to list'}
+          className={`content-card-save absolute top-3 right-3 ${saved ? 'w-auto min-w-9 px-3 is-added' : 'w-9'} h-9 rounded-full glass flex items-center justify-center gap-1.5 text-ink hover:bg-ink hover:text-cream transition-all duration-300 opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
+          aria-label={saved ? 'Added to My List. Remove from list' : 'Add to My List'}
+          title={saved ? 'Added to My List' : 'Add to My List'}
+          aria-pressed={saved}
         >
-          {saved ? <Check size={16} /> : <Plus size={16} />}
+          {saved ? <><Check size={16} /><span className="text-[10px] font-semibold">Added</span></> : <Plus size={16} />}
         </button>
 
         {/* Play overlay */}

@@ -9,6 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -22,7 +23,6 @@ import {
   ImagePlus,
   Info,
   List,
-  MoveUpRight,
   Play,
   Plus,
   Search,
@@ -34,38 +34,24 @@ import {
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
+import { useMyList } from '@/context/MyListContext';
 import { useVideoLibrary, type UploadedVideo } from '@/context/VideoLibraryContext';
 
-const videoTypes = [
-  { title: 'Films', description: 'Long-form visual storytelling', icon: Film, image: IMAGES.gradient1 },
-  { title: 'Documentaries', description: 'Ideas grounded in real life', icon: Clapperboard, image: IMAGES.landscape6 },
-  { title: 'Series', description: 'Stories with room to unfold', icon: Video, image: IMAGES.bokeh3 },
-  { title: 'Shorts', description: 'A new perspective, in a moment', icon: Sparkles, image: IMAGES.gradient5 },
-  { title: 'Originals', description: 'Made for the Lumera point of view', icon: MoveUpRight, image: IMAGES.bokeh8 },
+const categories = ['Films', 'Series', 'Documentaries', 'Shorts', 'Originals'];
+const formatOptions = ['Long-form', 'Episodic', 'Short-form', 'Live'];
+const categoryCards = [
+  { title: 'Films', description: 'A home for feature-length storytelling.', icon: Film, image: IMAGES.landscape6 },
+  { title: 'Series', description: 'Make space for stories across episodes.', icon: Video, image: IMAGES.landscape2 },
+  { title: 'Documentaries', description: 'Bring real-world perspectives into focus.', icon: Clapperboard, image: IMAGES.landscape3 },
+  { title: 'Shorts', description: 'Share a complete idea in a little time.', icon: Sparkles, image: IMAGES.landscape4 },
+  { title: 'Originals', description: 'Build a distinct point of view for Lumera.', icon: ArrowUpRight, image: IMAGES.art2 },
 ];
-
 const spotlights = [
-  { label: 'A visual study', note: 'Color, light & feeling', image: IMAGES.gradient2 },
-  { label: 'Moving quietly', note: 'Form in motion', image: IMAGES.bokeh4 },
-  { label: 'Open horizons', note: 'Room to imagine', image: IMAGES.landscape3 },
-  { label: 'Soft focus', note: 'An abstract interlude', image: IMAGES.gradient6 },
+  { label: 'Long-form', note: 'Feature-length experiences with room to settle in.', image: IMAGES.gradient1 },
+  { label: 'Episodic', note: 'Connect chapters into a series viewers can follow.', image: IMAGES.gradient3 },
+  { label: 'Short-form', note: 'Focused, concise pieces made to meet the moment.', image: IMAGES.gradient5 },
+  { label: 'Live', note: 'Bring audiences together as an experience unfolds.', image: IMAGES.gradient2 },
 ];
-
-const experiences = [
-  { title: 'Inspire', text: 'Ideas and images that open a new door.', image: IMAGES.art2 },
-  { title: 'Inform', text: 'A clearer view of subjects that matter.', image: IMAGES.landscape2 },
-  { title: 'Move', text: 'Stories that stay with you after the frame.', image: IMAGES.bokeh10 },
-  { title: 'Discover', text: 'Follow curiosity beyond the familiar.', image: IMAGES.gradient3 },
-];
-
-const comingSoon = [
-  { title: 'Original films', note: 'New visual worlds are taking shape.', image: IMAGES.gradient4 },
-  { title: 'Documentary voices', note: 'Perspectives worth making space for.', image: IMAGES.landscape1 },
-  { title: 'New series', note: 'More room for ideas to unfold.', image: IMAGES.bokeh6 },
-];
-
-const categories = ['Films', 'Documentaries', 'Series', 'Shorts', 'Originals'];
-const experienceTypes = ['Inspire', 'Inform', 'Move', 'Discover'];
 const sortOptions = ['Recently added', 'Title A–Z', 'Title Z–A'];
 
 function updateCardMotion(event: ReactPointerEvent<HTMLElement>) {
@@ -75,6 +61,8 @@ function updateCardMotion(event: ReactPointerEvent<HTMLElement>) {
   const y = (event.clientY - bounds.top) / bounds.height - 0.5;
   event.currentTarget.style.setProperty('--video-tilt-x', `${-y * 1.8}deg`);
   event.currentTarget.style.setProperty('--video-tilt-y', `${x * 1.8}deg`);
+  event.currentTarget.style.setProperty('--video-parallax-x', `${-x * 8}px`);
+  event.currentTarget.style.setProperty('--video-parallax-y', `${-y * 8}px`);
   event.currentTarget.style.setProperty('--video-pointer-x', `${(x + 0.5) * 100}%`);
   event.currentTarget.style.setProperty('--video-pointer-y', `${(y + 0.5) * 100}%`);
 }
@@ -82,6 +70,8 @@ function updateCardMotion(event: ReactPointerEvent<HTMLElement>) {
 function resetCardMotion(event: ReactPointerEvent<HTMLElement>) {
   event.currentTarget.style.setProperty('--video-tilt-x', '0deg');
   event.currentTarget.style.setProperty('--video-tilt-y', '0deg');
+  event.currentTarget.style.setProperty('--video-parallax-x', '0px');
+  event.currentTarget.style.setProperty('--video-parallax-y', '0px');
 }
 
 interface PreviewItem {
@@ -109,7 +99,7 @@ function UploadModal({ onClose }: UploadModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(categories[0]);
-  const [experience, setExperience] = useState(experienceTypes[0]);
+  const [experience, setExperience] = useState(formatOptions[0]);
   const [tagsInput, setTagsInput] = useState('');
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -350,9 +340,9 @@ function UploadModal({ onClose }: UploadModalProps) {
                 </select>
               </label>
               <label className="video-field">
-                <span>Experience</span>
+                <span>Format</span>
                 <select value={experience} onChange={(event) => setExperience(event.target.value)}>
-                  {experienceTypes.map((item) => <option key={item}>{item}</option>)}
+                  {formatOptions.map((item) => <option key={item}>{item}</option>)}
                 </select>
               </label>
               <label className="video-field">
@@ -398,8 +388,6 @@ function UploadModal({ onClose }: UploadModalProps) {
 }
 
 function VideoPreviewModal({ item, onClose }: { item: PreviewItem; onClose: () => void }) {
-  const [playing, setPlaying] = useState(false);
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -432,31 +420,15 @@ function VideoPreviewModal({ item, onClose }: { item: PreviewItem; onClose: () =
           {item.videoUrl ? (
             <video src={item.videoUrl} className="video-player-native" controls autoPlay playsInline />
           ) : (
-            <button
-              className={`video-player-play ${playing ? 'video-player-play--active' : ''}`}
-              onClick={() => setPlaying((current) => !current)}
-              aria-label={playing ? 'Pause preview' : 'Play preview'}
-            >
-              {playing ? <span className="video-player-pause" /> : <Play size={25} fill="currentColor" />}
-            </button>
-          )}
-          {!item.videoUrl && (
-            <div className="video-player-controls">
-              <button onClick={() => setPlaying((current) => !current)} aria-label={playing ? 'Pause' : 'Play'}>
-                {playing ? <span className="video-player-pause" /> : <Play size={15} fill="currentColor" />}
-              </button>
-              <div className={`video-player-scrubber ${playing ? 'video-player-scrubber--moving' : ''}`}><span /></div>
-              <span>PREVIEW</span>
-            </div>
+            <span className="video-artwork-preview-label">Thumbnail artwork · no video file attached</span>
           )}
         </div>
         <div className="video-player-caption">
           <div>
-            <span className="video-player-kicker">{item.videoUrl ? 'Your upload' : 'Lumera preview'}</span>
+            <span className="video-player-kicker">Your upload</span>
             <h2 className="font-display text-2xl font-semibold text-ink">{item.title}</h2>
-            <p>{item.description || 'A visual experience is taking shape. Preview artwork only.'}</p>
+            <p>{item.description || (item.videoUrl ? 'No description added.' : 'This draft contains thumbnail artwork only. Add a video file to preview playback.')}</p>
           </div>
-          {!item.videoUrl && <span className="video-coming-label">Coming soon</span>}
         </div>
       </motion.section>
     </motion.div>
@@ -464,23 +436,34 @@ function VideoPreviewModal({ item, onClose }: { item: PreviewItem; onClose: () =
 }
 
 export function VideosPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { videos } = useVideoLibrary();
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const heroArtRef = useRef<HTMLDivElement>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [preview, setPreview] = useState<PreviewItem | null>(null);
   const [activeType, setActiveType] = useState('All');
-  const [activeExperience, setActiveExperience] = useState('All');
+  const [activeFormat, setActiveFormat] = useState('All');
+  const [expandedFormat, setExpandedFormat] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState(sortOptions[0]);
-  const [status, setStatus] = useState<'Published' | 'Draft' | 'All'>('Published');
+  const [status, setStatus] = useState<'Published' | 'Draft' | 'All'>('All');
   const [listView, setListView] = useState(false);
+
+  useEffect(() => {
+    const state = location.state as { studioAction?: unknown } | null;
+    if (state?.studioAction !== 'studio-upload-video') return;
+    setShowUpload(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.key, location.pathname, location.state, navigate]);
 
   const filteredVideos = useMemo(() => {
     const term = search.trim().toLowerCase();
     return videos
       .filter((video) => status === 'All' || video.status === status)
       .filter((video) => activeType === 'All' || video.category === activeType)
-      .filter((video) => activeExperience === 'All' || video.experience === activeExperience)
+      .filter((video) => activeFormat === 'All' || video.experience === activeFormat)
       .filter((video) =>
         !term ||
         video.title.toLowerCase().includes(term) ||
@@ -492,7 +475,7 @@ export function VideosPage() {
         if (sort === 'Title Z–A') return second.title.localeCompare(first.title);
         return second.createdAt - first.createdAt;
       });
-  }, [activeExperience, activeType, search, sort, status, videos]);
+  }, [activeFormat, activeType, search, sort, status, videos]);
 
   const scrollSpotlight = (direction: -1 | 1) => {
     spotlightRef.current?.scrollBy({
@@ -507,70 +490,66 @@ export function VideosPage() {
   };
 
   const openUpload = () => setShowUpload(true);
+  const moveHeroArt = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'touch' || !heroArtRef.current) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    heroArtRef.current.style.setProperty('--hero-parallax-x', `${-x * 10}px`);
+    heroArtRef.current.style.setProperty('--hero-parallax-y', `${-y * 8}px`);
+  };
+  const resetHeroArt = () => {
+    heroArtRef.current?.style.setProperty('--hero-parallax-x', '0px');
+    heroArtRef.current?.style.setProperty('--hero-parallax-y', '0px');
+  };
 
   return (
     <PageWrapper>
-      <section className="video-page-hero">
-        <div className="video-page-hero__art" style={{ backgroundImage: `url(${IMAGES.hero2})` }} />
+      <section className="video-page-hero" onPointerMove={moveHeroArt} onPointerLeave={resetHeroArt}>
+        <div
+          ref={heroArtRef}
+          className="video-page-hero__art"
+          aria-hidden="true"
+        >
+          <img src={IMAGES.studio2} alt="" />
+        </div>
         <div className="video-page-hero__wash" />
-        <div className="relative z-10 mx-auto grid w-full max-w-[1440px] items-center gap-10 px-6 pb-20 pt-36 md:grid-cols-[1fr_0.9fr] md:px-10 md:pb-24 md:pt-40">
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 pb-24 pt-36 md:px-10 md:pb-28 md:pt-40">
           <Reveal>
-            <span className="video-kicker"><span /> The Lumera Moving Image</span>
-            <h1 className="mt-5 max-w-2xl font-display text-6xl font-semibold leading-[0.95] tracking-tight-display text-ink sm:text-7xl md:text-8xl">
-              A new way
-              <br />
-              <span className="font-normal italic">to see.</span>
+            <span className="video-kicker">VIDEO COLLECTION</span>
+            <h1 className="video-hero-title mt-5 max-w-3xl font-display text-6xl font-semibold leading-[0.95] tracking-tight-display text-ink sm:text-7xl md:text-8xl">
+              Stories in
+              <br className="sm:hidden" /> Motion
             </h1>
-            <p className="mt-6 max-w-lg text-base leading-relaxed text-ink/70 md:text-lg">
-              A thoughtful home for films, visual ideas and stories still taking shape.
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-ink/70 md:text-lg">
+              Explore cinematic experiences, visual stories and moments made to be watched.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#video-library" className="video-button video-button--primary">
-                Browse the library <ArrowRight size={16} />
+                Explore Videos <ArrowRight size={16} />
               </a>
-              <button className="video-button video-button--glass" onClick={openUpload}>
-                <Plus size={17} /> Upload video
-              </button>
+              <a href="#video-categories" className="video-button video-button--glass">
+                Browse Categories
+              </a>
             </div>
           </Reveal>
-
-          <Reveal delay={0.12} className="md:justify-self-end">
-            <button
-              className="video-hero-preview"
-              onClick={() =>
-                setPreview({
-                  title: 'An invitation to look closer',
-                  description: 'A preview of the visual worlds coming to Lumera.',
-                  image: IMAGES.hero3,
-                })
-              }
-            >
-              <span className="video-hero-preview__art" style={{ backgroundImage: `url(${IMAGES.hero3})` }} />
-              <span className="video-hero-preview__badge"><Sparkles size={13} /> Visual preview</span>
-              <span className="video-hero-preview__play"><Play size={22} fill="currentColor" /></span>
-              <span className="video-hero-preview__caption">
-                <span>See it differently</span>
-                <ArrowUpRight size={17} />
-              </span>
-            </button>
-          </Reveal>
         </div>
-        <span className="video-hero-index">01 / VISUAL STORIES</span>
+        <span className="video-hero-index">LUMERA / VIDEO COLLECTION</span>
       </section>
 
-      <section className="bg-cream py-16 md:py-20">
+      <section id="video-categories" className="bg-cream py-16 md:py-20">
         <div className="mx-auto max-w-[1440px] px-6 md:px-10">
           <Reveal>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Explore by type</p>
-                <h2 className="font-display text-3xl font-semibold tracking-tight-display text-ink md:text-4xl">Choose a point of view.</h2>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Browse by experience</p>
+                <h2 className="font-display text-3xl font-semibold tracking-tight-display text-ink md:text-4xl">A format for every story.</h2>
               </div>
-              <span className="text-xs text-slate-custom">Select a format to filter the library</span>
+              <span className="text-xs text-slate-custom">Explore platform categories and filter the library</span>
             </div>
           </Reveal>
           <div className="video-type-grid">
-            {videoTypes.map((type, index) => {
+            {categoryCards.map((type, index) => {
               const Icon = type.icon;
               const selected = activeType === type.title;
               return (
@@ -601,9 +580,9 @@ export function VideosPage() {
           <Reveal>
             <div className="mb-8 flex items-end justify-between gap-4">
               <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Featured / Spotlight</p>
-                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">A first look at Lumera.</h2>
-                <p className="mt-2 text-sm text-slate-custom">Artwork previews · Experiences in development</p>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Video formats</p>
+                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">Shape the way it moves.</h2>
+                <p className="mt-2 text-sm text-slate-custom">Choose a format to explore its place in your library.</p>
               </div>
               <div className="hidden gap-2 sm:flex">
                 <button className="video-round-control" onClick={() => scrollSpotlight(-1)} aria-label="Previous spotlight"><ChevronLeft size={19} /></button>
@@ -615,110 +594,27 @@ export function VideosPage() {
             {spotlights.map((item, index) => (
               <Reveal key={item.label} delay={index * 0.05}>
                 <button
-                  className="video-spotlight-card video-tilt-card"
-                  onPointerMove={updateCardMotion}
-                  onPointerLeave={resetCardMotion}
-                  onClick={() => setPreview({ title: item.label, description: `${item.note}. Artwork preview only; experience coming soon.`, image: item.image })}
-                >
-                  <span className="video-card-art" style={{ backgroundImage: `url(${item.image})` }} />
-                  <span className="video-spotlight-card__tag">Spotlight · 0{index + 1}</span>
-                  <span className="video-spotlight-card__copy">
-                    <span>{item.note}</span>
-                    <strong>{item.label}</strong>
-                    <span className="video-spotlight-card__link">Preview <ArrowUpRight size={16} /></span>
-                  </span>
-                  <span className="video-spotlight-card__play"><Play size={18} fill="currentColor" /></span>
-                </button>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-cream py-16 md:py-24">
-        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
-          <Reveal>
-            <div className="mb-8">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Browse by experience</p>
-              <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">How do you want to feel?</h2>
-            </div>
-          </Reveal>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {experiences.map((item, index) => (
-              <Reveal key={item.title} delay={index * 0.06}>
-                <button
-                  className="video-experience-card video-tilt-card"
+                  className={`video-spotlight-card video-tilt-card ${expandedFormat === item.label ? 'video-spotlight-card--selected' : ''}`}
                   onPointerMove={updateCardMotion}
                   onPointerLeave={resetCardMotion}
                   onClick={() => {
-                    setActiveExperience(activeExperience === item.title ? 'All' : item.title);
+                    setExpandedFormat(expandedFormat === item.label ? null : item.label);
+                    setActiveFormat(activeFormat === item.label ? 'All' : item.label);
                     document.getElementById('video-library')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
                 >
                   <span className="video-card-art" style={{ backgroundImage: `url(${item.image})` }} />
-                  <span className="video-experience-card__index">0{index + 1}</span>
-                  <span className="video-experience-card__copy">
-                    <strong>{item.title}</strong>
-                    <small>{item.text}</small>
-                  </span>
-                  <span className="video-experience-card__arrow"><ArrowUpRight size={18} /></span>
-                </button>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="video-coming-section bg-ivory-gradient py-16 md:py-24">
-        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
-          <Reveal>
-            <div className="mb-8 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Coming soon</p>
-                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">The frame is just beginning.</h2>
-              </div>
-              <span className="hidden items-center gap-2 text-xs text-slate-custom md:flex"><span className="video-live-dot" /> New visual worlds in progress</span>
-            </div>
-          </Reveal>
-          <div className="grid gap-4 md:grid-cols-3">
-            {comingSoon.map((item, index) => (
-              <Reveal key={item.title} delay={index * 0.06}>
-                <button
-                  className="video-coming-card video-tilt-card"
-                  onPointerMove={updateCardMotion}
-                  onPointerLeave={resetCardMotion}
-                  onClick={() => setPreview({ title: item.title, description: item.note, image: item.image })}
-                >
-                  <span className="video-card-art" style={{ backgroundImage: `url(${item.image})` }} />
-                  <span className="video-coming-card__badge">Coming soon</span>
-                  <span className="video-coming-card__copy">
+                  <span className="video-spotlight-card__tag">FORMAT · 0{index + 1}</span>
+                  <span className="video-spotlight-card__copy">
                     <span>{item.note}</span>
-                    <strong>{item.title}</strong>
-                    <span className="video-coming-card__arrow"><ArrowUpRight size={18} /></span>
+                    <strong>{item.label}</strong>
+                    <span className="video-spotlight-card__link">{expandedFormat === item.label ? 'Selected' : 'Explore format'} <ArrowUpRight size={16} /></span>
                   </span>
+                  <span className="video-spotlight-card__play"><ArrowUpRight size={18} /></span>
                 </button>
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="bg-cream py-16 md:py-20">
-        <div className="mx-auto max-w-[1440px] px-6 md:px-10">
-          <Reveal>
-            <div className="video-upload-banner">
-              <div className="video-upload-banner__orb" />
-              <div className="relative z-10 max-w-2xl">
-                <span className="video-banner-icon"><Upload size={20} /></span>
-                <p className="mb-2 mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">For the makers</p>
-                <h2 className="font-display text-3xl font-semibold tracking-tight-display text-ink md:text-5xl">Bring your perspective to Lumera.</h2>
-                <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-custom md:text-base">Add a video, shape its details, and preview how it will look in your library.</p>
-              </div>
-              <button className="video-button video-button--primary relative z-10" onClick={openUpload}>
-                <Upload size={16} /> Upload video <ArrowRight size={15} />
-              </button>
-            </div>
-          </Reveal>
         </div>
       </section>
 
@@ -728,15 +624,16 @@ export function VideosPage() {
             <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
               <div>
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-dark">Your video library</p>
-                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">Browse at your pace.</h2>
-                <p className="mt-2 text-sm text-slate-custom">Published videos from this session appear here.</p>
+                <h2 className="font-display text-4xl font-semibold tracking-tight-display text-ink md:text-5xl">A home for your videos.</h2>
+                <p className="mt-2 text-sm text-slate-custom">Search, sort, and organize your uploaded collection.</p>
               </div>
               <button className="video-button video-button--primary self-start lg:self-auto" onClick={openUpload}>
-                <Plus size={16} /> Add a video
+                <Plus size={16} /> Upload Video
               </button>
             </div>
           </Reveal>
 
+          <div className="video-library-count">{filteredVideos.length} {filteredVideos.length === 1 ? 'Video' : 'Videos'}</div>
           <div className="video-library-toolbar">
             <div className="video-search">
               <Search size={17} />
@@ -777,11 +674,11 @@ export function VideosPage() {
               </button>
             ))}
             <span className="video-filter-divider" />
-            {experienceTypes.map((item) => (
+            {formatOptions.map((item) => (
               <button
                 key={item}
-                className={`video-status-filter ${activeExperience === item ? 'video-status-filter--active' : ''}`}
-                onClick={() => setActiveExperience(activeExperience === item ? 'All' : item)}
+                className={`video-status-filter ${activeFormat === item ? 'video-status-filter--active' : ''}`}
+                onClick={() => setActiveFormat(activeFormat === item ? 'All' : item)}
               >
                 {item}
               </button>
@@ -812,18 +709,18 @@ export function VideosPage() {
               >
                 <span className="video-empty-icon"><FileVideo2 size={23} /></span>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-dark">
-                  {videos.length ? 'No matching videos' : 'A space for what’s next'}
+                  {videos.length ? 'No matching videos' : 'Ready when you are'}
                 </p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-ink">
-                  {videos.length ? 'Try another search or filter.' : 'Your library is ready when you are.'}
+                  {videos.length ? 'Try another search or filter.' : 'Your video library is ready.'}
                 </h3>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-custom">
                   {videos.length
                     ? 'Adjust your filters, or add another video to your session library.'
-                    : 'Add a video to preview it here. Your uploads stay in this browser session and are not sent to a server.'}
+                    : 'Upload your first video to begin building your collection.'}
                 </p>
                 <button className="video-button video-button--primary mt-5" onClick={openUpload}>
-                  <Upload size={15} /> Upload a video
+                  <Upload size={15} /> Upload Video
                 </button>
               </motion.div>
             )}
@@ -848,11 +745,27 @@ function VideoLibraryCard({
   listView: boolean;
   onPreview: (item: PreviewItem) => void;
 }) {
+  const { isSaved, recordViewed, toggleSave } = useMyList();
+  const listItem = {
+    id: `uploaded-video-${video.id}`,
+    title: video.title,
+    category: video.category,
+    type: 'video' as const,
+    image: video.thumbnailUrl || IMAGES.landscape6,
+    description: video.description,
+    status: 'new' as const,
+  };
+  const saved = isSaved(listItem.id);
+  const openPreview = (item: PreviewItem) => {
+    recordViewed(listItem);
+    onPreview(item);
+  };
+
   return (
     <article className={`video-library-card ${listView ? 'video-library-card--list' : ''}`}>
       <button
         className="video-library-card__media"
-        onClick={() => onPreview({
+        onClick={() => openPreview({
           title: video.title,
           description: video.description,
           image: video.thumbnailUrl,
@@ -878,7 +791,7 @@ function VideoLibraryCard({
           </div>
           <button
             className="video-library-card__open"
-            onClick={() => onPreview({
+              onClick={() => openPreview({
               title: video.title,
               description: video.description,
               image: video.thumbnailUrl,
@@ -891,6 +804,9 @@ function VideoLibraryCard({
         </div>
         {video.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-custom">{video.description}</p>}
         {video.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{video.tags.map((tag) => <span className="video-tag" key={tag}>{tag}</span>)}</div>}
+        <button type="button" className={`video-library-save ${saved ? 'is-saved' : ''}`} onClick={() => toggleSave(listItem)} aria-pressed={saved}>
+          {saved ? <><Check size={14} /> Added</> : <><Plus size={14} /> + My List</>}
+        </button>
       </div>
     </article>
   );

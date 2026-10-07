@@ -3,7 +3,7 @@ import { Settings, Bell, Heart, Bookmark, Clock, Play, Edit2, LogOut, Crown, Dow
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
 import { ContentCard } from '@/components/ContentCard';
-import { videosData, podcastsData, storiesData } from '@/data/content';
+import { videosData } from '@/data/content';
 
 const profileStats = [
   { icon: Play, label: 'Watched', value: '127' },
@@ -12,8 +12,8 @@ const profileStats = [
   { icon: Clock, label: 'Hours', value: '248' },
 ];
 
-const recentlyWatched = [videosData[0], videosData[2], podcastsData[0], storiesData[0]];
-const recommended = [videosData[1], videosData[3], podcastsData[2], storiesData[2]];
+const recentlyWatched = [videosData[0], videosData[2]];
+const recommended = [videosData[1], videosData[3]];
 
 const menuItems = [
   { icon: Edit2, label: 'Edit Profile' },

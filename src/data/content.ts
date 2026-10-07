@@ -9,6 +9,7 @@ export interface MediaItem {
   description: string;
   status: 'coming-soon' | 'featured' | 'new';
   badge?: string;
+  savedAt?: number;
 }
 
 export interface CategoryCard {
@@ -173,7 +174,7 @@ export const categoryCards: CategoryCard[] = [
   { id: 'cat-3', title: 'Documentaries', subtitle: 'Real & revealing', image: IMAGES.landscape2, count: 31 },
   { id: 'cat-4', title: 'Podcasts', subtitle: 'Voices & ideas', image: IMAGES.mic1, count: 47 },
   { id: 'cat-5', title: 'Live', subtitle: 'In the moment', image: IMAGES.concert2, count: 12 },
-  { id: 'cat-6', title: 'Stories', subtitle: 'Visual narratives', image: IMAGES.art1, count: 56 },
+  { id: 'cat-6', title: 'Stories', subtitle: 'Visual narratives', image: IMAGES.art1, count: 0 },
 ];
 
 export const editorialItems: MediaItem[] = [
@@ -374,249 +375,11 @@ export const videosData: MediaItem[] = [
   },
 ];
 
-// Podcasts page data
-export const podcastsData: MediaItem[] = [
-  {
-    id: 'pod-1',
-    title: 'The Frame Podcast',
-    category: 'Film & Craft',
-    type: 'podcast',
-    image: IMAGES.mic1,
-    episodes: 42,
-    duration: 'Weekly',
-    description: 'Conversations with the artisans behind the lens.',
-    status: 'featured',
-    badge: 'Featured',
-  },
-  {
-    id: 'pod-2',
-    title: 'Sound Design',
-    category: 'Audio & Music',
-    type: 'podcast',
-    image: IMAGES.mic2,
-    episodes: 28,
-    duration: 'Bi-weekly',
-    description: 'The invisible art that shapes every scene.',
-    status: 'new',
-    badge: 'New Season',
-  },
-  {
-    id: 'pod-3',
-    title: 'Light Talks',
-    category: 'Cinematography',
-    type: 'podcast',
-    image: IMAGES.mic3,
-    episodes: 35,
-    duration: 'Weekly',
-    description: 'Cinematographers unpack their most challenging shots.',
-    status: 'featured',
-  },
-  {
-    id: 'pod-4',
-    title: 'The Director\'s Chair',
-    category: 'Direction',
-    type: 'podcast',
-    image: IMAGES.mic4,
-    episodes: 19,
-    duration: 'Monthly',
-    description: 'Intimate interviews with visionary directors.',
-    status: 'new',
-  },
-  {
-    id: 'pod-5',
-    title: 'Story Mechanics',
-    category: 'Writing & Narrative',
-    type: 'podcast',
-    image: IMAGES.mic5,
-    episodes: 51,
-    duration: 'Weekly',
-    description: 'Breaking down the architecture of great storytelling.',
-    status: 'featured',
-  },
-  {
-    id: 'pod-6',
-    title: 'Color Stories',
-    category: 'Visual Design',
-    type: 'podcast',
-    image: IMAGES.mic6,
-    episodes: 23,
-    duration: 'Bi-weekly',
-    description: 'How palettes shape emotion, memory, and meaning.',
-    status: 'new',
-  },
-  {
-    id: 'pod-7',
-    title: 'The Edit',
-    type: 'podcast',
-    category: 'Post-Production',
-    image: IMAGES.mic7,
-    episodes: 31,
-    duration: 'Weekly',
-    description: 'Editors reveal the magic that happens after the cut.',
-    status: 'featured',
-  },
-];
+export const podcastsData: MediaItem[] = [];
 
-// Live page data
-export const liveData: MediaItem[] = [
-  {
-    id: 'live-1',
-    title: 'Live from the Studio',
-    category: 'Music Performance',
-    type: 'live',
-    image: IMAGES.concert1,
-    duration: 'Live Now',
-    description: 'An intimate acoustic session streamed in real time.',
-    status: 'featured',
-    badge: 'LIVE',
-  },
-  {
-    id: 'live-2',
-    title: 'The Conversation',
-    category: 'Talk Show',
-    type: 'live',
-    image: IMAGES.concert2,
-    duration: '8:00 PM EST',
-    description: 'Weekly deep dives with today\'s most creative minds.',
-    status: 'featured',
-    badge: 'Tonight',
-  },
-  {
-    id: 'live-3',
-    title: 'Front Row',
-    category: 'Concert Series',
-    type: 'live',
-    image: IMAGES.concert3,
-    duration: 'Tomorrow 9 PM',
-    description: 'The best seats in the house, delivered to your screen.',
-    status: 'coming-soon',
-    badge: 'Tomorrow',
-  },
-  {
-    id: 'live-4',
-    title: 'Open Studio',
-    category: 'Behind the Scenes',
-    type: 'live',
-    image: IMAGES.concert4,
-    duration: 'Friday 6 PM',
-    description: 'Watch art happen in real time as creators work live.',
-    status: 'coming-soon',
-  },
-  {
-    id: 'live-5',
-    title: 'The Listening Party',
-    category: 'Music Event',
-    type: 'live',
-    image: IMAGES.concert5,
-    duration: 'Saturday 8 PM',
-    description: 'New releases, heard together for the very first time.',
-    status: 'coming-soon',
-  },
-  {
-    id: 'live-6',
-    title: 'Masterclass Live',
-    category: 'Educational',
-    type: 'live',
-    image: IMAGES.concert6,
-    duration: 'Sunday 3 PM',
-    description: 'Learn from masters as they teach in real time.',
-    status: 'coming-soon',
-  },
-  {
-    id: 'live-7',
-    title: 'Night Cinema',
-    category: 'Film Screening',
-    type: 'live',
-    image: IMAGES.concert7,
-    duration: 'Weekly',
-    description: 'Curated screenings with live director commentary.',
-    status: 'featured',
-  },
-];
+export const liveData: MediaItem[] = [];
 
-// Stories page data
-export const storiesData: MediaItem[] = [
-  {
-    id: 'story-1',
-    title: 'Threads of Light',
-    category: 'Visual Story',
-    type: 'story',
-    image: IMAGES.art1,
-    duration: '12 frames',
-    description: 'A wordless narrative told through twelve frames.',
-    status: 'featured',
-  },
-  {
-    id: 'story-2',
-    title: 'The Color Red',
-    category: 'Photo Essay',
-    type: 'story',
-    image: IMAGES.art2,
-    duration: '8 frames',
-    description: 'One color, eight emotions, a single story.',
-    status: 'new',
-  },
-  {
-    id: 'story-3',
-    title: 'Textures of Memory',
-    category: 'Mixed Media',
-    type: 'story',
-    image: IMAGES.art3,
-    duration: '15 frames',
-    description: 'Where touch and sight become one experience.',
-    status: 'featured',
-  },
-  {
-    id: 'story-4',
-    title: 'Bold Strokes',
-    category: 'Art Series',
-    type: 'story',
-    image: IMAGES.art4,
-    duration: '10 frames',
-    description: 'The courage of the first mark on blank canvas.',
-    status: 'new',
-  },
-  {
-    id: 'story-5',
-    title: 'Layered',
-    category: 'Visual Story',
-    type: 'story',
-    image: IMAGES.art5,
-    duration: '14 frames',
-    description: 'Every surface has a story underneath.',
-    status: 'featured',
-  },
-  {
-    id: 'story-6',
-    title: 'In Motion',
-    category: 'Photo Essay',
-    type: 'story',
-    image: IMAGES.art6,
-    duration: '9 frames',
-    description: 'Capturing the energy of creation in progress.',
-    status: 'new',
-  },
-  {
-    id: 'story-7',
-    title: 'Vivid',
-    category: 'Art Series',
-    type: 'story',
-    image: IMAGES.art7,
-    duration: '11 frames',
-    description: 'A celebration of color in its purest form.',
-    status: 'featured',
-  },
-  {
-    id: 'story-8',
-    title: 'Abstract Diaries',
-    category: 'Mixed Media',
-    type: 'story',
-    image: IMAGES.art8,
-    duration: '13 frames',
-    description: 'Daily moments rendered in abstraction.',
-    status: 'new',
-  },
-];
+export const storiesData: MediaItem[] = [];
 
 // Studio page data
 export const studioData = [
