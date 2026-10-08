@@ -11,7 +11,7 @@ import {
   Sparkles,
   Waves,
 } from 'lucide-react';
-import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
@@ -281,14 +281,53 @@ function ExperienceSection() {
 }
 
 export function HomePage() {
+  const heroRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const heroSceneY = useTransform(heroScrollProgress, [0, 1], [0, reduceMotion ? 0 : 32]);
+  const heroSceneScale = useTransform(heroScrollProgress, [0, 1], [1, reduceMotion ? 1 : 1.04]);
+  const heroSceneOpacity = useTransform(heroScrollProgress, [0, 1], [1, reduceMotion ? 1 : 0.88]);
+
+  const moveHeroScene = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'touch') return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    event.currentTarget.style.setProperty('--home-pointer-x', `${-x * 12}px`);
+    event.currentTarget.style.setProperty('--home-pointer-y', `${-y * 9}px`);
+  };
+
+  const resetHeroScene = (event: ReactPointerEvent<HTMLElement>) => {
+    event.currentTarget.style.setProperty('--home-pointer-x', '0px');
+    event.currentTarget.style.setProperty('--home-pointer-y', '0px');
+  };
+
   return (
     <PageWrapper>
-      <section className="home-hero relative flex min-h-[690px] items-center overflow-hidden md:min-h-[780px]">
-        <div className="home-hero__art" style={{ backgroundImage: `url(${IMAGES.bokeh9})` }} />
+      <section
+        ref={heroRef}
+        onPointerMove={moveHeroScene}
+        onPointerLeave={resetHeroScene}
+        className="home-hero relative flex min-h-[690px] items-center overflow-hidden md:min-h-[780px]"
+      >
+        <motion.div
+          className="home-hero__art"
+          style={{ y: heroSceneY, scale: heroSceneScale, opacity: heroSceneOpacity }}
+          aria-hidden="true"
+        >
+          <img
+            className="home-hero__image"
+            src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=2200&q=90"
+            alt=""
+          />
+        </motion.div>
         <div className="home-hero__wash" />
         <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 pb-12 pt-32 md:px-10 md:pt-36">
           <Reveal>
-            <div className="max-w-3xl">
+            <div className="home-hero__copy max-w-3xl">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/75 shadow-soft backdrop-blur-md">
                 <Sparkles size={13} className="text-gold-dark" />
                 A world of stories
