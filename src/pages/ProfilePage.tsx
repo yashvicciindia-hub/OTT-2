@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   ArrowUpRight,
   Bell,
   BookOpen,
   Captions,
+  Check,
   Clock3,
   Eye,
   Film,
@@ -24,8 +26,10 @@ import {
 import { motion } from 'framer-motion';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
+import { useAuth } from '@/context/AuthContext';
 import { useMyList } from '@/context/MyListContext';
 import { IMAGES } from '@/data/content';
+import { isSupabaseConfigured, requireSupabase } from '@/lib/supabase';
 
 const destinations = {
   video: '/videos',
@@ -44,15 +48,17 @@ const accountNavigation = [
   },
   {
     label: 'Continue Watching',
-    description: 'Playback progress is not available yet',
+    description: 'Pick up where you left off',
     icon: Play,
-    available: false,
+    to: '/my-list?tab=Continue',
+    available: true,
   },
   {
     label: 'Liked',
-    description: 'Likes are not collected in this session',
+    description: 'Stories you have liked',
     icon: Heart,
-    available: false,
+    to: '/my-list?tab=Liked',
+    available: true,
   },
   {
     label: 'History',
@@ -63,53 +69,181 @@ const accountNavigation = [
   },
 ] as const;
 
-const preferences = [
-  {
-    title: 'Appearance',
-    description: 'Lumera currently uses its light theme.',
-    value: 'Light',
-    icon: Monitor,
-  },
-  {
-    title: 'Notifications',
-    description: 'Notification preferences are not configured.',
-    value: 'Unavailable',
-    icon: Bell,
-  },
-  {
-    title: 'Language',
-    description: 'The current interface is available in English.',
-    value: 'English',
-    icon: Globe2,
-  },
-  {
-    title: 'Playback',
-    description: 'Playback options are controlled by each player.',
-    value: 'Per player',
-    icon: Settings2,
-  },
-  {
-    title: 'Captions',
-    description: 'Caption availability is set in each player.',
-    value: 'Per player',
-    icon: Captions,
-  },
-  {
-    title: 'Privacy & Security',
-    description: 'Account security settings require a connected account.',
-    value: 'No account',
-    icon: ShieldCheck,
-  },
-] as const;
-
 const supportItems = [
   { label: 'Help & Support', detail: 'Support contact is not configured.', icon: HelpCircle },
   { label: 'Terms', detail: 'Terms are not available in this preview.', icon: Eye },
   { label: 'Privacy', detail: 'Privacy details are not available in this preview.', icon: LockKeyhole },
 ] as const;
 
+interface ProfileRecord {
+  display_name: string;
+  avatar_path: string | null;
+  preferences: Record<string, unknown>;
+}
+
+interface AccountPreferences {
+  notifications: boolean;
+  language: string;
+  autoplay: boolean;
+  captions: boolean;
+  profile_visibility: 'private' | 'public';
+}
+
+const defaultPreferences: AccountPreferences = {
+  notifications: true,
+  language: 'en',
+  autoplay: true,
+  captions: false,
+  profile_visibility: 'private',
+};
+
+function readPreferences(value: Record<string, unknown>): AccountPreferences {
+  return {
+    notifications: typeof value.notifications === 'boolean' ? value.notifications : defaultPreferences.notifications,
+    language: typeof value.language === 'string' ? value.language : defaultPreferences.language,
+    autoplay: typeof value.autoplay === 'boolean' ? value.autoplay : defaultPreferences.autoplay,
+    captions: typeof value.captions === 'boolean' ? value.captions : defaultPreferences.captions,
+    profile_visibility: value.profile_visibility === 'public' ? 'public' : 'private',
+  };
+}
+
 export function ProfilePage() {
-  const { savedItems, recentItems } = useMyList();
+  const { user, signOut } = useAuth();
+  const { savedItems, recentItems, error: libraryError, loading: libraryLoading } = useMyList();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<ProfileRecord | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [preferences, setPreferences] = useState<AccountPreferences>(defaultPreferences);
+  const [editing, setEditing] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const loadProfile = async () => {
+      if (!user || !isSupabaseConfigured) {
+        setProfileLoading(false);
+        return;
+      }
+      setProfileLoading(true);
+      setProfileError('');
+      try {
+        const { data, error } = await requireSupabase()
+          .from('profiles')
+          .select('display_name, avatar_path, preferences')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (!active) return;
+        if (data) {
+          const record = data as unknown as ProfileRecord;
+          setProfile(record);
+          setDisplayName(record.display_name);
+          setPreferences(readPreferences(record.preferences ?? {}));
+          setAvatarUrl(record.avatar_path
+            ? requireSupabase().storage.from('lumera-thumbnails').getPublicUrl(record.avatar_path).data.publicUrl
+            : '');
+        } else {
+          setDisplayName(typeof user.user_metadata.full_name === 'string' ? user.user_metadata.full_name : '');
+          setProfile(null);
+          setPreferences(defaultPreferences);
+        }
+      } catch (loadError) {
+        if (!active) return;
+        console.error('Could not load your profile.', loadError);
+        setProfileError(loadError instanceof Error ? loadError.message : 'Could not load your profile.');
+      } finally {
+        if (active) setProfileLoading(false);
+      }
+    };
+    void loadProfile();
+    return () => { active = false; };
+  }, [user]);
+
+  const saveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+    setProfileError('');
+    try {
+      const client = requireSupabase();
+      let avatarPath = profile?.avatar_path ?? null;
+      if (avatarFile) {
+        const extension = avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const path = `${user.id}/avatars/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await client.storage.from('lumera-thumbnails').upload(path, avatarFile, {
+          contentType: avatarFile.type,
+          upsert: false,
+        });
+        if (uploadError) throw uploadError;
+        avatarPath = path;
+      }
+      const nextProfile = {
+        id: user.id,
+        display_name: displayName.trim(),
+        avatar_path: avatarPath,
+        preferences,
+      };
+      const { data, error } = await client.from('profiles')
+        .upsert(nextProfile)
+        .select('display_name, avatar_path, preferences')
+        .single();
+      if (error) throw error;
+      const saved = data as unknown as ProfileRecord;
+      setProfile(saved);
+      setAvatarFile(null);
+      setAvatarUrl(saved.avatar_path
+        ? client.storage.from('lumera-thumbnails').getPublicUrl(saved.avatar_path).data.publicUrl
+        : '');
+      setEditing(false);
+    } catch (saveError) {
+      console.error('Could not save your profile.', saveError);
+      setProfileError(saveError instanceof Error ? saveError.message : 'Could not save your profile.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const chooseAvatar = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setProfileError('Choose an image file for your avatar.');
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarUrl(URL.createObjectURL(file));
+    setProfileError('');
+  };
+
+  const updatePreference = (key: keyof AccountPreferences, value: string | boolean) => {
+    setPreferences((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleSignOut = async () => {
+    setProfileError('');
+    try {
+      await signOut();
+      navigate('/', { replace: true });
+    } catch (signOutError) {
+      console.error('Could not sign out.', signOutError);
+      setProfileError(signOutError instanceof Error ? signOutError.message : 'Could not sign out.');
+    }
+  };
+
+  const profileName = displayName || (typeof user?.user_metadata.full_name === 'string' ? user.user_metadata.full_name : '') || user?.email?.split('@')[0] || 'Lumera member';
+  const avatarInitial = profileName.slice(0, 1).toUpperCase();
+  const preferenceCards = [
+    { title: 'Appearance', description: 'Keep Lumera’s light visual style.', value: 'Light', icon: Monitor },
+    { title: 'Notifications', description: 'Choose whether to receive updates.', value: preferences.notifications, key: 'notifications' as const, icon: Bell },
+    { title: 'Language', description: 'Language used across the experience.', value: preferences.language, key: 'language' as const, icon: Globe2 },
+    { title: 'Playback', description: 'Start supported media automatically.', value: preferences.autoplay, key: 'autoplay' as const, icon: Settings2 },
+    { title: 'Captions', description: 'Turn captions on by default when available.', value: preferences.captions, key: 'captions' as const, icon: Captions },
+    { title: 'Privacy & Security', description: 'Control profile visibility and account access.', value: preferences.profile_visibility, key: 'profile_visibility' as const, icon: ShieldCheck },
+  ];
 
   return (
     <PageWrapper>
@@ -120,25 +254,38 @@ export function ProfilePage() {
               <span className="account-eyebrow">YOUR LUMERA</span>
               <div className="account-profile">
                 <div className="account-avatar" aria-hidden="true">
-                  <UserRound size={34} strokeWidth={1.35} />
+                  {avatarUrl
+                    ? <img src={avatarUrl} alt="" />
+                    : <span>{avatarInitial || <UserRound size={34} strokeWidth={1.35} />}</span>}
                 </div>
                 <div className="account-profile__identity">
-                  <h1 id="account-title">Your Lumera profile</h1>
-                  <p>No account is connected</p>
-                  <span>Your saved list and viewing history stay in this browser session.</span>
+                  <h1 id="account-title">{profileLoading ? 'Your Lumera profile' : profileName}</h1>
+                  <p>{user?.email}</p>
+                  <span>{profileLoading ? 'Loading account details…' : 'Your Lumera account and personal collection.'}</span>
                 </div>
                 <div className="account-profile__actions">
-                  <button type="button" disabled title="Profile editing is unavailable without a connected account">
-                    Edit Profile
+                  <button type="button" onClick={() => setEditing((current) => !current)}>
+                    {editing ? 'Cancel' : 'Edit Profile'}
                   </button>
-                  <button type="button" disabled title="Account management is unavailable without a connected account">
+                  <Link to="/auth?mode=reset" className="account-profile__manage">
                     Manage Account
-                  </button>
+                  </Link>
                 </div>
               </div>
-              <p className="account-unavailable-note">
-                Profile details and sign-in services are not connected in this experience.
-              </p>
+              {editing && (
+                <form className="account-profile-editor" onSubmit={(event) => { event.preventDefault(); void saveProfile(); }}>
+                  <label>
+                    <span>Display name</span>
+                    <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={80} required />
+                  </label>
+                  <label>
+                    <span>Avatar</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={chooseAvatar} />
+                  </label>
+                  <button type="submit" disabled={saving || profileLoading}>{saving ? 'Saving…' : 'Save Profile'} <Check size={15} /></button>
+                </form>
+              )}
+              {profileError && <p className="account-profile-error" role="alert">{profileError}</p>}
             </Reveal>
           </div>
         </section>
@@ -163,7 +310,13 @@ export function ProfilePage() {
                     <span className="account-nav-card__icon"><Icon size={19} strokeWidth={1.6} /></span>
                     <span className="account-nav-card__copy">
                       <strong>{label}</strong>
-                      <small>{description}</small>
+                      <small>
+                        {label === 'My List'
+                          ? `${savedItems.length} saved ${savedItems.length === 1 ? 'item' : 'items'}`
+                          : label === 'Liked'
+                            ? 'View items you’ve liked'
+                            : description}
+                      </small>
                     </span>
                     {available
                       ? <ArrowUpRight className="account-nav-card__arrow" size={18} />
@@ -186,9 +339,10 @@ export function ProfilePage() {
               })}
             </div>
             <p className="account-session-note">
-              <LockKeyhole size={13} /> Saved items and viewing history are stored for this browser session only.
+              <LockKeyhole size={13} /> Your collection and history are synced securely to your account.
               <span>{savedItems.length} {savedItems.length === 1 ? 'saved item' : 'saved items'}</span>
             </p>
+            {libraryError && <p className="account-profile-error" role="alert">{libraryError}</p>}
           </div>
         </section>
 
@@ -228,7 +382,7 @@ export function ProfilePage() {
               </div>
             </Reveal>
             <div className="account-preferences-grid">
-              {preferences.map(({ title, description, value, icon: Icon }, index) => (
+              {preferenceCards.map(({ title, description, value, icon: Icon, ...config }, index) => (
                 <Reveal key={title} delay={index * 0.04}>
                   <motion.div className="account-preference-card" whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
                     <span className="account-preference-card__icon"><Icon size={18} strokeWidth={1.6} /></span>
@@ -236,11 +390,31 @@ export function ProfilePage() {
                       <strong>{title}</strong>
                       <p>{description}</p>
                     </div>
-                    <span className="account-preference-card__value">{value}</span>
+                    {'key' in config && config.key === 'language' ? (
+                      <select aria-label="Language preference" className="account-preference-card__select" value={String(value)} onChange={(event) => updatePreference('language', event.target.value)}>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                      </select>
+                    ) : 'key' in config && config.key === 'profile_visibility' ? (
+                      <select aria-label="Profile visibility" className="account-preference-card__select" value={String(value)} onChange={(event) => updatePreference('profile_visibility', event.target.value)}>
+                        <option value="private">Private</option>
+                        <option value="public">Public</option>
+                      </select>
+                    ) : 'key' in config && typeof value === 'boolean' ? (
+                      <button type="button" className={`account-preference-toggle${value ? ' is-on' : ''}`} role="switch" aria-checked={value} aria-label={`${title} ${value ? 'on' : 'off'}`} onClick={() => updatePreference(config.key, !value)}>
+                        <span />
+                      </button>
+                    ) : (
+                      <span className="account-preference-card__value">{String(value)}</span>
+                    )}
                   </motion.div>
                 </Reveal>
               ))}
             </div>
+            <button type="button" className="account-preferences-save" disabled={saving || profileLoading} onClick={() => void saveProfile()}>
+              {saving ? 'Saving preferences…' : 'Save Preferences'}
+            </button>
           </div>
         </section>
 
@@ -255,7 +429,9 @@ export function ProfilePage() {
                 {recentItems.length > 0 && <span className="account-history-count">{recentItems.length} this session</span>}
               </div>
             </Reveal>
-            {recentItems.length > 0 ? (
+            {libraryLoading ? (
+              <p className="account-history-empty" role="status">Loading your recent activity…</p>
+            ) : recentItems.length > 0 ? (
               <div className="account-history-list">
                 {recentItems.slice(0, 6).map((item, index) => (
                   <Reveal key={item.id} delay={index * 0.04}>
@@ -303,9 +479,9 @@ export function ProfilePage() {
               <div className="account-signout">
                 <div>
                   <strong>Sign Out</strong>
-                  <span>No account is signed in.</span>
+                  <span>Sign out of your Lumera account on this device.</span>
                 </div>
-                <button type="button" disabled title="There is no connected account to sign out">
+                <button type="button" onClick={() => void handleSignOut()}>
                   Sign Out
                 </button>
               </div>

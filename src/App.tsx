@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -11,10 +11,25 @@ import { MyListPage } from '@/pages/MyListPage';
 import { StudioPage } from '@/pages/StudioPage';
 import { SearchPage } from '@/pages/SearchPage';
 import { ProfilePage } from '@/pages/ProfilePage';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { VideoLibraryProvider } from '@/context/VideoLibraryContext';
 import { PodcastLibraryProvider } from '@/context/PodcastLibraryContext';
 import { MyListProvider } from '@/context/MyListContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { AuthPage } from '@/pages/AuthPage';
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { loading, user } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div className="min-h-[50vh] bg-ivory" aria-live="polite" />;
+  }
+  if (!user) {
+    return <Navigate to="/auth" replace state={{ from: location }} />;
+  }
+  return children;
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -34,10 +49,11 @@ function AnimatedRoutes() {
         <Route path="/podcasts" element={<PodcastsPage />} />
         <Route path="/live" element={<LivePage />} />
         <Route path="/stories" element={<StoriesPage />} />
-        <Route path="/my-list" element={<MyListPage />} />
-        <Route path="/studio" element={<StudioPage />} />
+        <Route path="/my-list" element={<RequireAuth><MyListPage /></RequireAuth>} />
+        <Route path="/studio" element={<RequireAuth><StudioPage /></RequireAuth>} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+        <Route path="/auth" element={<AuthPage />} />
       </Routes>
     </AnimatePresence>
   );
@@ -46,20 +62,22 @@ function AnimatedRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <VideoLibraryProvider>
-        <PodcastLibraryProvider>
-          <MyListProvider>
-            <ScrollToTop />
-            <div className="min-h-screen bg-ivory">
-              <Navbar />
-              <main>
-                <AnimatedRoutes />
-              </main>
-              <Footer />
-            </div>
-          </MyListProvider>
-        </PodcastLibraryProvider>
-      </VideoLibraryProvider>
+      <AuthProvider>
+        <VideoLibraryProvider>
+          <PodcastLibraryProvider>
+            <MyListProvider>
+              <ScrollToTop />
+              <div className="min-h-screen bg-ivory">
+                <Navbar />
+                <main>
+                  <AnimatedRoutes />
+                </main>
+                <Footer />
+              </div>
+            </MyListProvider>
+          </PodcastLibraryProvider>
+        </VideoLibraryProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

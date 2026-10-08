@@ -3173,6 +3173,221 @@ body {
   transform: translate(2px, -2px) rotate(8deg);
 }
 
+.account-auth-page {
+  display: grid;
+  min-height: min(820px, 100svh);
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 80% 14%, rgba(201, 169, 110, 0.14), transparent 32%),
+    linear-gradient(180deg, #fbfaf7, #f4efe6);
+  padding: 7.5rem 1.25rem 4rem;
+}
+
+.account-auth-card {
+  width: min(100%, 31rem);
+  border: 1px solid rgba(41, 38, 32, 0.09);
+  border-radius: 1.45rem;
+  background: rgba(255, 255, 255, 0.83);
+  padding: clamp(1.5rem, 5vw, 2.6rem);
+  box-shadow: 0 22px 70px rgba(45, 37, 24, 0.09);
+}
+
+.account-auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  color: #777166;
+  font-size: 0.7rem;
+  text-decoration: none;
+  transition: color 220ms ease, transform 220ms ease;
+}
+
+.account-auth-back:hover {
+  transform: translateX(-2px);
+  color: #806642;
+}
+
+.account-auth-card > .account-eyebrow {
+  display: flex;
+}
+
+.account-auth-card h1 {
+  margin: 0.8rem 0 0;
+  color: #292824;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+.account-auth-intro {
+  margin: 0.8rem 0 1.7rem;
+  color: #777166;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.account-auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.account-auth-form > label {
+  display: grid;
+  gap: 0.45rem;
+  color: #454138;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.account-auth-form input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #292824;
+  font: inherit;
+  font-weight: 400;
+}
+
+.account-auth-form > label > input,
+.account-auth-input {
+  min-height: 3.1rem;
+  border: 1px solid rgba(41, 38, 32, 0.12);
+  border-radius: 0.8rem;
+  background: rgba(250, 248, 243, 0.8);
+  padding: 0.8rem 0.9rem;
+  transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.account-auth-form > label > input:focus,
+.account-auth-input:focus-within {
+  border-color: rgba(168, 137, 90, 0.65);
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.12);
+}
+
+.account-auth-input {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #96876e;
+}
+
+.account-auth-input button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0.2rem;
+  color: #827b70;
+  cursor: pointer;
+}
+
+.account-auth-form label > small {
+  color: #8d867a;
+  font-size: 0.63rem;
+  font-weight: 400;
+}
+
+.account-auth-submit {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.35rem;
+  border: 1px solid #292824;
+  border-radius: 999px;
+  background: #292824;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 240ms ease, background-color 240ms ease, box-shadow 240ms ease;
+}
+
+.account-auth-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #a8895a;
+  background: #a8895a;
+  box-shadow: 0 10px 24px rgba(168, 137, 90, 0.2);
+}
+
+.account-auth-submit:disabled {
+  opacity: 0.62;
+  cursor: wait;
+}
+
+.account-auth-submit svg {
+  transition: transform 220ms ease;
+}
+
+.account-auth-submit:hover:not(:disabled) svg {
+  transform: translateX(3px);
+}
+
+.account-auth-switches {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1.3rem;
+}
+
+.account-auth-switches button {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0;
+  color: #806642;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.account-auth-switches button:hover {
+  color: #292824;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.account-auth-error,
+.account-auth-success,
+.account-auth-notice {
+  border: 1px solid rgba(41, 38, 32, 0.09);
+  border-radius: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.account-auth-error {
+  border-color: rgba(164, 75, 67, 0.2);
+  background: rgba(164, 75, 67, 0.06);
+  color: #984c43;
+}
+
+.account-auth-success {
+  border-color: rgba(81, 124, 93, 0.2);
+  background: rgba(81, 124, 93, 0.07);
+  color: #456b4c;
+}
+
+.account-auth-notice {
+  background: rgba(201, 169, 110, 0.1);
+  color: #65563d;
+}
+
+.account-auth-notice code {
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0.1rem 0.25rem;
+  font-size: 0.65rem;
+}
+
 .video-round-control,
 .video-icon-button {
   display: grid;
