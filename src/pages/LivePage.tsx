@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type Poi
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
   AudioLines,
@@ -623,8 +622,8 @@ export function LivePage() {
         <div className="live-container live-hero__inner">
           <Reveal>
             <div className="live-hero__copy">
-              <span className="live-kicker"><i /> LIVE BROADCASTING</span>
-              <h1>Live, when the{' '}<br /><em>moment</em> happens.</h1>
+              <span className="live-kicker"><i /> LIVE</span>
+              <h1>Live, when the{' '}<br /><em>moment happens.</em></h1>
               <p>Experience conversations, performances and special broadcasts as they unfold.</p>
               <div className="live-hero__actions">
                 <a href="#live-now" className="live-button live-button--dark">Explore Live <ArrowRight size={16} /></a>
@@ -632,10 +631,7 @@ export function LivePage() {
               </div>
             </div>
           </Reveal>
-          <div className="live-hero__side-note" aria-hidden="true"><span>IN THE MOMENT</span><i /></div>
-          <a className="live-hero__scroll" href="#live-now" aria-label="Scroll to Live Now"><ArrowDown size={17} /><span>SCROLL TO EXPLORE</span></a>
         </div>
-        <div className="live-hero__signal" aria-hidden="true"><span /><span /><span /></div>
       </section>
 
       <section className="live-section live-now-section" id="live-now">
