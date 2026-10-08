@@ -916,10 +916,6 @@ export function PodcastsPage() {
               </a>
             </div>
           </Reveal>
-          <div className="podcast-hero__signature" aria-hidden="true">
-            <AudioLines size={18} />
-            <span>SPACE FOR EVERY VOICE</span>
-          </div>
         </div>
       </section>
 

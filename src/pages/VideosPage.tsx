@@ -514,7 +514,7 @@ export function VideosPage() {
           <img src={IMAGES.studio2} alt="" />
         </div>
         <div className="video-page-hero__wash" />
-        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 pb-24 pt-36 md:px-10 md:pb-28 md:pt-40">
+        <div className="video-page-hero__inner">
           <Reveal>
             <span className="video-kicker">VIDEO COLLECTION</span>
             <h1 className="video-hero-title mt-5 max-w-3xl font-display text-6xl font-semibold leading-[0.95] tracking-tight-display text-ink sm:text-7xl md:text-8xl">
@@ -524,7 +524,7 @@ export function VideosPage() {
             <p className="mt-6 max-w-xl text-base leading-relaxed text-ink/70 md:text-lg">
               Explore cinematic experiences, visual stories and moments made to be watched.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="video-page-hero__actions mt-8 flex flex-wrap gap-3">
               <a href="#video-library" className="video-button video-button--primary">
                 Explore Videos <ArrowRight size={16} />
               </a>
@@ -534,7 +534,6 @@ export function VideosPage() {
             </div>
           </Reveal>
         </div>
-        <span className="video-hero-index">LUMERA / VIDEO COLLECTION</span>
       </section>
 
       <section id="video-categories" className="bg-cream py-16 md:py-20">

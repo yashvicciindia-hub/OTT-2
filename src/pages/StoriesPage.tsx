@@ -358,14 +358,10 @@ export function StoriesPage() {
       }}>
         <div className="story-hero__art"><img src={IMAGES.art7} alt="" /></div>
         <div className="story-hero__wash" />
-        <div className="story-hero__ornament story-hero__ornament--one" aria-hidden="true" />
-        <div className="story-hero__ornament story-hero__ornament--two" aria-hidden="true" />
         <div className="story-container story-hero__inner">
           <Reveal>
             <div className="story-hero__copy"><span className="story-kicker"><BookOpen size={15} /> STORIES · EDITORIAL COLLECTION</span><h1>Stories worth<br /><em>staying for.</em></h1><p>People, places, ideas and moments — told beyond the frame.</p><a href="#story-featured" className="story-button story-button--dark">Explore Stories <ArrowRight size={16} /></a></div>
           </Reveal>
-          <span className="story-hero__caption">A SPACE FOR WHAT MOVES US</span>
-          <a className="story-hero__scroll" href="#story-featured" aria-label="Scroll to featured story"><ArrowDown size={16} /><span>DISCOVER STORIES</span></a>
         </div>
       </section>
 
