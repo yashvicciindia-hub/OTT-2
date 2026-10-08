@@ -47,10 +47,10 @@ const categoryCards = [
   { title: 'Originals', description: 'Build a distinct point of view for Lumera.', icon: ArrowUpRight, image: IMAGES.art2 },
 ];
 const spotlights = [
-  { label: 'Long-form', note: 'Feature-length experiences with room to settle in.', image: IMAGES.gradient1 },
-  { label: 'Episodic', note: 'Connect chapters into a series viewers can follow.', image: IMAGES.gradient3 },
-  { label: 'Short-form', note: 'Focused, concise pieces made to meet the moment.', image: IMAGES.gradient5 },
-  { label: 'Live', note: 'Bring audiences together as an experience unfolds.', image: IMAGES.gradient2 },
+  { label: 'Long-form', note: 'Feature-length experiences with room to settle in.', image: 'https://images.unsplash.com/photo-1612544409025-e1f6a56c1152?auto=format&fit=crop&w=1400&q=85' },
+  { label: 'Episodic', note: 'Connect chapters into a series viewers can follow.', image: 'https://images.unsplash.com/photo-1600779547877-be592ef5aad3?auto=format&fit=crop&w=1400&q=85' },
+  { label: 'Short-form', note: 'Focused, concise pieces made to meet the moment.', image: 'https://images.unsplash.com/photo-1627244714766-94dab62ed964?auto=format&fit=crop&w=1400&q=85' },
+  { label: 'Live', note: 'Bring audiences together as an experience unfolds.', image: 'https://images.unsplash.com/photo-1632187981988-40f3cbaeef5e?auto=format&fit=crop&w=1400&q=85' },
 ];
 const sortOptions = ['Recently added', 'Title A–Z', 'Title Z–A'];
 

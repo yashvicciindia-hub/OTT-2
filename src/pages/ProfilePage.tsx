@@ -1,157 +1,319 @@
 import { Link } from 'react-router-dom';
-import { Settings, Bell, Heart, Bookmark, Clock, Play, Edit2, LogOut, Crown, Download } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Bell,
+  BookOpen,
+  Captions,
+  Clock3,
+  Eye,
+  Film,
+  Globe2,
+  Headphones,
+  Heart,
+  HelpCircle,
+  LockKeyhole,
+  Monitor,
+  Play,
+  Radio,
+  Settings2,
+  ShieldCheck,
+  UserRound,
+  Video,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
-import { ContentCard } from '@/components/ContentCard';
-import { videosData } from '@/data/content';
+import { useMyList } from '@/context/MyListContext';
+import { IMAGES } from '@/data/content';
 
-const profileStats = [
-  { icon: Play, label: 'Watched', value: '127' },
-  { icon: Bookmark, label: 'Saved', value: '34' },
-  { icon: Heart, label: 'Liked', value: '89' },
-  { icon: Clock, label: 'Hours', value: '248' },
-];
+const destinations = {
+  video: '/videos',
+  podcast: '/podcasts',
+  story: '/stories',
+  live: '/live',
+} as const;
 
-const recentlyWatched = [videosData[0], videosData[2]];
-const recommended = [videosData[1], videosData[3]];
+const accountNavigation = [
+  {
+    label: 'My List',
+    description: 'Your saved collection',
+    icon: BookOpen,
+    to: '/my-list',
+    available: true,
+  },
+  {
+    label: 'Continue Watching',
+    description: 'Playback progress is not available yet',
+    icon: Play,
+    available: false,
+  },
+  {
+    label: 'Liked',
+    description: 'Likes are not collected in this session',
+    icon: Heart,
+    available: false,
+  },
+  {
+    label: 'History',
+    description: 'Recently viewed in this session',
+    icon: Clock3,
+    href: '#recently-viewed',
+    available: true,
+  },
+] as const;
 
-const menuItems = [
-  { icon: Edit2, label: 'Edit Profile' },
-  { icon: Bell, label: 'Notifications' },
-  { icon: Settings, label: 'Account Settings' },
-  { icon: Download, label: 'Downloads' },
-  { icon: Crown, label: 'Subscription' },
-  { icon: LogOut, label: 'Sign Out' },
-];
+const preferences = [
+  {
+    title: 'Appearance',
+    description: 'Lumera currently uses its light theme.',
+    value: 'Light',
+    icon: Monitor,
+  },
+  {
+    title: 'Notifications',
+    description: 'Notification preferences are not configured.',
+    value: 'Unavailable',
+    icon: Bell,
+  },
+  {
+    title: 'Language',
+    description: 'The current interface is available in English.',
+    value: 'English',
+    icon: Globe2,
+  },
+  {
+    title: 'Playback',
+    description: 'Playback options are controlled by each player.',
+    value: 'Per player',
+    icon: Settings2,
+  },
+  {
+    title: 'Captions',
+    description: 'Caption availability is set in each player.',
+    value: 'Per player',
+    icon: Captions,
+  },
+  {
+    title: 'Privacy & Security',
+    description: 'Account security settings require a connected account.',
+    value: 'No account',
+    icon: ShieldCheck,
+  },
+] as const;
+
+const supportItems = [
+  { label: 'Help & Support', detail: 'Support contact is not configured.', icon: HelpCircle },
+  { label: 'Terms', detail: 'Terms are not available in this preview.', icon: Eye },
+  { label: 'Privacy', detail: 'Privacy details are not available in this preview.', icon: LockKeyhole },
+] as const;
 
 export function ProfilePage() {
+  const { savedItems, recentItems } = useMyList();
+
   return (
     <PageWrapper>
-      {/* Profile header */}
-      <section className="relative pt-32 pb-12 bg-ivory-gradient overflow-hidden">
-        <div className="absolute top-20 right-10 w-96 h-96 rounded-full bg-gold/8 blur-3xl float" />
-        <div className="absolute top-40 left-10 w-72 h-72 rounded-full bg-rose/6 blur-3xl float" style={{ animationDelay: '2s' }} />
-
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 relative z-10">
-          <Reveal>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
-              {/* Avatar */}
-              <div className="relative">
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-br from-gold to-rose flex items-center justify-center shadow-elevated">
-                  <span className="font-display text-5xl md:text-6xl font-bold text-cream">A</span>
+      <main className="account-page">
+        <section className="account-hero" aria-labelledby="account-title">
+          <div className="account-container">
+            <Reveal>
+              <span className="account-eyebrow">YOUR LUMERA</span>
+              <div className="account-profile">
+                <div className="account-avatar" aria-hidden="true">
+                  <UserRound size={34} strokeWidth={1.35} />
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-ink flex items-center justify-center shadow-card cursor-pointer hover:bg-gold transition-colors">
-                  <Edit2 size={16} className="text-cream" />
+                <div className="account-profile__identity">
+                  <h1 id="account-title">Your Lumera profile</h1>
+                  <p>No account is connected</p>
+                  <span>Your saved list and viewing history stay in this browser session.</span>
+                </div>
+                <div className="account-profile__actions">
+                  <button type="button" disabled title="Profile editing is unavailable without a connected account">
+                    Edit Profile
+                  </button>
+                  <button type="button" disabled title="Account management is unavailable without a connected account">
+                    Manage Account
+                  </button>
                 </div>
               </div>
+              <p className="account-unavailable-note">
+                Profile details and sign-in services are not connected in this experience.
+              </p>
+            </Reveal>
+          </div>
+        </section>
 
-              {/* Info */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="font-display text-4xl md:text-5xl font-bold text-ink tracking-tight-display">
-                    Alex Morgan
-                  </h1>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gold/15 text-gold-dark">
-                    <Crown size={14} />
-                    Premium
-                  </span>
+        <section className="account-section account-section--nav" aria-labelledby="account-nav-title">
+          <div className="account-container">
+            <Reveal>
+              <div className="account-section-heading">
+                <div>
+                  <span className="account-eyebrow">MADE FOR YOU</span>
+                  <h2 id="account-nav-title">Your Lumera</h2>
                 </div>
-                <p className="text-slate-custom text-lg mb-1">alex.morgan@lumera.com</p>
-                <p className="text-slate-custom text-sm">Member since January 2025</p>
+                <span className="account-section-heading__aside">
+                  <Play size={13} fill="currentColor" /> Your space to return to
+                </span>
               </div>
+            </Reveal>
+            <div className="account-nav-grid">
+              {accountNavigation.map(({ label, description, icon: Icon, available, ...destination }, index) => {
+                const content = (
+                  <>
+                    <span className="account-nav-card__icon"><Icon size={19} strokeWidth={1.6} /></span>
+                    <span className="account-nav-card__copy">
+                      <strong>{label}</strong>
+                      <small>{description}</small>
+                    </span>
+                    {available
+                      ? <ArrowUpRight className="account-nav-card__arrow" size={18} />
+                      : <span className="account-nav-card__status">Not available</span>}
+                  </>
+                );
+                const className = `account-nav-card${available ? '' : ' account-nav-card--disabled'}`;
 
-              {/* Quick stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full md:w-auto">
-                {profileStats.map((stat) => (
-                  <div key={stat.label} className="bg-cream rounded-2xl p-4 text-center shadow-soft min-w-[100px]">
-                    <stat.icon size={20} className="text-gold mx-auto mb-2" />
-                    <p className="font-display text-2xl font-bold text-ink">{stat.value}</p>
-                    <p className="text-slate-custom text-xs">{stat.label}</p>
+                return (
+                  <Reveal key={label} delay={index * 0.05}>
+                    {available && 'to' in destination && destination.to ? (
+                      <Link className={className} to={destination.to}>{content}</Link>
+                    ) : available && 'href' in destination && destination.href ? (
+                      <a className={className} href={destination.href}>{content}</a>
+                    ) : (
+                      <div className={className} aria-disabled="true">{content}</div>
+                    )}
+                  </Reveal>
+                );
+              })}
+            </div>
+            <p className="account-session-note">
+              <LockKeyhole size={13} /> Saved items and viewing history are stored for this browser session only.
+              <span>{savedItems.length} {savedItems.length === 1 ? 'saved item' : 'saved items'}</span>
+            </p>
+          </div>
+        </section>
+
+        <section className="account-studio-section" aria-labelledby="account-studio-title">
+          <div className="account-container">
+            <Reveal>
+              <div className="account-studio-card">
+                <div className="account-studio-card__art" aria-hidden="true">
+                  <img src={IMAGES.studio2} alt="" loading="lazy" />
+                </div>
+                <div className="account-studio-card__wash" aria-hidden="true" />
+                <div className="account-studio-card__content">
+                  <span className="account-eyebrow">CREATE WITH LUMERA</span>
+                  <h2 id="account-studio-title">A place for what you make.</h2>
+                  <p>Upload and manage videos, podcasts and stories in your Lumera Studio workspace.</p>
+                  <Link to="/studio" className="account-studio-card__cta">
+                    Open Studio <ArrowRight size={16} />
+                  </Link>
+                </div>
+                <span className="account-studio-card__mark" aria-hidden="true">
+                  <Film size={21} /><Headphones size={21} /><Video size={21} /><Radio size={21} />
+                </span>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="account-section account-section--preferences" aria-labelledby="account-preferences-title">
+          <div className="account-container">
+            <Reveal>
+              <div className="account-section-heading">
+                <div>
+                  <span className="account-eyebrow">THE WAY YOU WATCH</span>
+                  <h2 id="account-preferences-title">Preferences</h2>
+                </div>
+                <p>Current experience settings</p>
+              </div>
+            </Reveal>
+            <div className="account-preferences-grid">
+              {preferences.map(({ title, description, value, icon: Icon }, index) => (
+                <Reveal key={title} delay={index * 0.04}>
+                  <motion.div className="account-preference-card" whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
+                    <span className="account-preference-card__icon"><Icon size={18} strokeWidth={1.6} /></span>
+                    <div className="account-preference-card__copy">
+                      <strong>{title}</strong>
+                      <p>{description}</p>
+                    </div>
+                    <span className="account-preference-card__value">{value}</span>
+                  </motion.div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="recently-viewed" className="account-section account-section--history" aria-labelledby="account-history-title">
+          <div className="account-container">
+            <Reveal>
+              <div className="account-section-heading">
+                <div>
+                  <span className="account-eyebrow"><Clock3 size={13} /> YOUR RECENT ACTIVITY</span>
+                  <h2 id="account-history-title">Recently Viewed</h2>
+                </div>
+                {recentItems.length > 0 && <span className="account-history-count">{recentItems.length} this session</span>}
+              </div>
+            </Reveal>
+            {recentItems.length > 0 ? (
+              <div className="account-history-list">
+                {recentItems.slice(0, 6).map((item, index) => (
+                  <Reveal key={item.id} delay={index * 0.04}>
+                    <Link to={destinations[item.type]} className="account-history-item">
+                      <img src={item.image} alt="" loading="lazy" />
+                      <span className="account-history-item__copy">
+                        <small>{item.category}</small>
+                        <strong>{item.title}</strong>
+                      </span>
+                      <span className="account-history-item__type">{item.type}</span>
+                      <ArrowUpRight className="account-history-item__arrow" size={18} />
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
+            ) : (
+              <Reveal>
+                <div className="account-history-empty">
+                  <span className="account-history-empty__icon"><Clock3 size={20} /></span>
+                  <div>
+                    <h3>Your story starts here.</h3>
+                    <p>Content you view during this browser session will appear here.</p>
+                  </div>
+                  <Link to="/videos" className="account-history-empty__link">
+                    Explore Lumera <ArrowRight size={15} />
+                  </Link>
+                </div>
+              </Reveal>
+            )}
+          </div>
+        </section>
+
+        <section className="account-footer-section" aria-label="Account information">
+          <div className="account-container">
+            <div className="account-footer-card">
+              <div className="account-footer-card__links">
+                {supportItems.map(({ label, detail, icon: Icon }) => (
+                  <div key={label} className="account-footer-link" aria-label={`${label}. ${detail}`}>
+                    <Icon size={17} strokeWidth={1.6} />
+                    <span>{label}</span>
+                    <small>{detail}</small>
                   </div>
                 ))}
               </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Recently watched */}
-      <section className="py-12 md:py-16 bg-cream">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight-display">
-                Continue Watching
-              </h2>
-              <Link to="/videos" className="text-sm text-slate-custom hover:text-gold transition-colors">
-                View All
-              </Link>
-            </div>
-          </Reveal>
-
-          <div className="flex flex-wrap gap-5">
-            {recentlyWatched.map((item, i) => (
-              <Reveal key={item.id} delay={i * 0.06}>
-                <div className="relative group">
-                  <ContentCard item={item} index={i} />
-                  {/* Progress bar */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-ink/10 rounded-b-2xl overflow-hidden mx-1">
-                    <div
-                      className="h-full bg-gold"
-                      style={{ width: `${30 + i * 20}%` }}
-                    />
-                  </div>
+              <div className="account-signout">
+                <div>
+                  <strong>Sign Out</strong>
+                  <span>No account is signed in.</span>
                 </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Recommended */}
-      <section className="py-12 md:py-16 bg-ivory-gradient">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight-display mb-6">
-              Recommended for You
-            </h2>
-          </Reveal>
-          <div className="flex flex-wrap gap-5">
-            {recommended.map((item, i) => (
-              <Reveal key={item.id} delay={i * 0.06}>
-                <ContentCard item={item} index={i} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Settings menu */}
-      <section className="py-12 md:py-20 bg-cream">
-        <div className="max-w-[800px] mx-auto px-6 md:px-10">
-          <Reveal>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-ink tracking-tight-display mb-8">
-              Settings
-            </h2>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <div className="bg-ivory rounded-2xl shadow-soft overflow-hidden">
-              {menuItems.map((item, i) => (
-                <button
-                  key={item.label}
-                  className={`w-full flex items-center gap-4 px-6 py-5 hover:bg-ivory-2 transition-colors duration-300 text-left ${
-                    i !== menuItems.length - 1 ? 'border-b border-ink/8' : ''
-                  } ${item.label === 'Sign Out' ? 'text-rose' : 'text-ink'}`}
-                >
-                  <item.icon size={20} className={item.label === 'Sign Out' ? 'text-rose' : 'text-slate-custom'} />
-                  <span className="font-medium">{item.label}</span>
-                  <span className="ml-auto text-slate-custom">›</span>
+                <button type="button" disabled title="There is no connected account to sign out">
+                  Sign Out
                 </button>
-              ))}
+              </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+            <p className="account-footer-note">Lumera preferences and activity shown here reflect this browser session.</p>
+          </div>
+        </section>
+      </main>
     </PageWrapper>
   );
 }

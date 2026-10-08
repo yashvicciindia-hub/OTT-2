@@ -16,11 +16,31 @@ import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
 
+const HOME_ARTWORK = {
+  spotlightStories: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=85',
+  spotlightOriginals: 'https://images.unsplash.com/photo-1574712255236-ce5bf8395083?auto=format&fit=crop&w=1600&q=85',
+  spotlightLive: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=85',
+  experienceWatch: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=85',
+  experiencePodcasts: 'https://images.unsplash.com/photo-1589903308904-1010c2294adc?auto=format&fit=crop&w=1200&q=85',
+  experienceLive: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=85',
+  experienceStories: 'https://images.unsplash.com/photo-1506863530036-1efeddceb993?auto=format&fit=crop&w=1200&q=85',
+  experienceOriginals: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=1200&q=85',
+  editorialFeature: 'https://images.unsplash.com/photo-1628015893843-5f7f6f6ccb01?auto=format&fit=crop&w=1600&q=85',
+  editorialListening: 'https://images.unsplash.com/photo-1581547848545-a75a2634ba23?auto=format&fit=crop&w=1200&q=85',
+  editorialFieldNotes: 'https://images.unsplash.com/photo-1485470733090-0aae1788d5af?auto=format&fit=crop&w=1200&q=85',
+  editorialJournal: 'https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1200&q=85',
+  editorialLumera: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=85',
+  upcomingFilms: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=1200&q=85',
+  upcomingPodcasts: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1200&q=85',
+  upcomingLive: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=1200&q=85',
+  upcomingStories: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=85',
+};
+
 const spotlightCards = [
   {
     title: 'Stories',
     subtitle: 'Featured editorial experiences',
-    image: IMAGES.landscape4,
+    image: HOME_ARTWORK.spotlightStories,
     path: '/stories',
     action: 'Explore stories',
     className: 'spotlight-card--stories',
@@ -28,7 +48,7 @@ const spotlightCards = [
   {
     title: 'Originals',
     subtitle: 'Coming soon',
-    image: IMAGES.gradient4,
+    image: HOME_ARTWORK.spotlightOriginals,
     path: '/videos',
     action: 'Discover originals',
     className: 'spotlight-card--originals',
@@ -36,7 +56,7 @@ const spotlightCards = [
   {
     title: 'Live Experiences',
     subtitle: 'Coming soon',
-    image: IMAGES.concert2,
+    image: HOME_ARTWORK.spotlightLive,
     path: '/live',
     action: 'Explore live',
     className: 'spotlight-card--live',
@@ -47,35 +67,35 @@ const exploreCards = [
   {
     title: 'Watch',
     description: 'A considered home for visual stories, films and fresh perspectives.',
-    image: IMAGES.bokeh7,
+    image: HOME_ARTWORK.experienceWatch,
     path: '/videos',
     icon: Play,
   },
   {
     title: 'Podcasts',
     description: 'Thoughtful voices, ideas and conversations to take with you.',
-    image: IMAGES.mic1,
+    image: HOME_ARTWORK.experiencePodcasts,
     path: '/podcasts',
     icon: Headphones,
   },
   {
     title: 'Live',
     description: 'Be part of shared moments as they unfold, wherever you are.',
-    image: IMAGES.concert3,
+    image: HOME_ARTWORK.experienceLive,
     path: '/live',
     icon: Radio,
   },
   {
     title: 'Stories',
     description: 'Editorial discoveries shaped by a point of view and a sense of place.',
-    image: IMAGES.art1,
+    image: HOME_ARTWORK.experienceStories,
     path: '/stories',
     icon: Compass,
   },
   {
     title: 'Originals',
     description: 'New ideas and original experiences are taking shape at Lumera.',
-    image: IMAGES.gradient5,
+    image: HOME_ARTWORK.experienceOriginals,
     path: '/videos',
     icon: Sparkles,
   },
@@ -113,7 +133,7 @@ const editorialCards = [
     title: 'Color in a quieter key',
     category: 'Visual notes',
     description: 'A study of soft palettes, shifting light and the moods they leave behind.',
-    image: IMAGES.gradient2,
+    image: HOME_ARTWORK.editorialFeature,
     path: '/stories',
     className: 'editorial-card--feature',
   },
@@ -121,7 +141,7 @@ const editorialCards = [
     title: 'The space between sounds',
     category: 'Listening room',
     description: 'On pauses, textures and the details that bring a soundscape to life.',
-    image: IMAGES.mic5,
+    image: HOME_ARTWORK.editorialListening,
     path: '/podcasts',
     className: '',
   },
@@ -129,7 +149,7 @@ const editorialCards = [
     title: 'A study in movement',
     category: 'Field notes',
     description: 'Light and motion, seen from a different angle.',
-    image: IMAGES.landscape5,
+    image: HOME_ARTWORK.editorialFieldNotes,
     path: '/stories',
     className: '',
   },
@@ -137,7 +157,7 @@ const editorialCards = [
     title: 'Light, collected',
     category: 'Image journal',
     description: 'An open-ended collection of color, form and fleeting impressions.',
-    image: IMAGES.bokeh5,
+    image: HOME_ARTWORK.editorialJournal,
     path: '/videos',
     className: '',
   },
@@ -145,17 +165,17 @@ const editorialCards = [
     title: 'An open invitation',
     category: 'At Lumera',
     description: 'A place to find a new perspective, at your own pace.',
-    image: IMAGES.art4,
+    image: HOME_ARTWORK.editorialLumera,
     path: '/studio',
     className: '',
   },
 ];
 
 const upcomingExperiences = [
-  { title: 'Original Films', image: IMAGES.gradient7, path: '/videos' },
-  { title: 'New Podcasts', image: IMAGES.gradient3, path: '/podcasts' },
-  { title: 'Live Experiences', image: IMAGES.bokeh8, path: '/live' },
-  { title: 'Exclusive Stories', image: IMAGES.gradient6, path: '/stories' },
+  { title: 'Original Films', image: HOME_ARTWORK.upcomingFilms, path: '/videos' },
+  { title: 'New Podcasts', image: HOME_ARTWORK.upcomingPodcasts, path: '/podcasts' },
+  { title: 'Live Experiences', image: HOME_ARTWORK.upcomingLive, path: '/live' },
+  { title: 'Exclusive Stories', image: HOME_ARTWORK.upcomingStories, path: '/stories' },
 ];
 
 function applyCardTilt(event: ReactPointerEvent<HTMLElement>) {
