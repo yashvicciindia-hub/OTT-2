@@ -63,7 +63,7 @@ const IMAGES = {
   concert6: 'https://images.pexels.com/photos/30215615/pexels-photo-30215615.jpeg?auto=compress&cs=tinysrgb&w=940',
   concert7: 'https://images.pexels.com/photos/18004195/pexels-photo-18004195.jpeg?auto=compress&cs=tinysrgb&w=940',
   portrait1: 'https://images.pexels.com/photos/2109853/pexels-photo-2109853.jpeg?auto=compress&cs=tinysrgb&w=600',
-  portrait2: 'https://images.pexels.com/photos/19217345/pexels-photo-19217345.jpeg?auto=compress&cs=tinysrgb&w=600',
+  portrait2: 'https://i.pinimg.com/736x/28/9b/d6/289bd6d7eca8ed1e4e543a5e9135c2be.jpg',
   portrait3: 'https://images.pexels.com/photos/33714954/pexels-photo-33714954.jpeg?auto=compress&cs=tinysrgb&w=600',
   portrait4: 'https://images.pexels.com/photos/12954623/pexels-photo-12954623.jpeg?auto=compress&cs=tinysrgb&w=600',
   portrait5: 'https://images.pexels.com/photos/39562208/pexels-photo-39562208.jpeg?auto=compress&cs=tinysrgb&w=600',
