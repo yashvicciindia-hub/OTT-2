@@ -36,6 +36,7 @@ import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
 import { useMyList } from '@/context/MyListContext';
 import { useVideoLibrary, type UploadedVideo } from '@/context/VideoLibraryContext';
+import { useAuth } from '@/context/AuthContext';
 
 const categories = ['Films', 'Series', 'Documentaries', 'Shorts', 'Originals'];
 const formatOptions = ['Long-form', 'Episodic', 'Short-form', 'Live'];
@@ -438,6 +439,7 @@ function VideoPreviewModal({ item, onClose }: { item: PreviewItem; onClose: () =
 export function VideosPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { videos } = useVideoLibrary();
   const spotlightRef = useRef<HTMLDivElement>(null);
   const heroArtRef = useRef<HTMLDivElement>(null);
@@ -454,9 +456,13 @@ export function VideosPage() {
   useEffect(() => {
     const state = location.state as { studioAction?: unknown } | null;
     if (state?.studioAction !== 'studio-upload-video') return;
+    if (!user) {
+      navigate('/auth', { replace: true, state: { from: location } });
+      return;
+    }
     setShowUpload(true);
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.key, location.pathname, location.state, navigate]);
+  }, [location, navigate, user]);
 
   const filteredVideos = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -489,7 +495,20 @@ export function VideosPage() {
     document.getElementById('video-library')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const openUpload = () => setShowUpload(true);
+  const openUpload = () => {
+    if (!user) {
+      navigate('/auth', {
+        state: {
+          from: {
+            pathname: location.pathname,
+            state: { studioAction: 'studio-upload-video' },
+          },
+        },
+      });
+      return;
+    }
+    setShowUpload(true);
+  };
   const moveHeroArt = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === 'touch' || !heroArtRef.current) return;
     const bounds = event.currentTarget.getBoundingClientRect();

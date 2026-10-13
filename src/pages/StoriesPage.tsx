@@ -30,6 +30,7 @@ import { PageWrapper } from '@/components/PageWrapper';
 import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
 import { useMyList } from '@/context/MyListContext';
+import { useAuth } from '@/context/AuthContext';
 
 const storyCategories = [
   { title: 'People', description: 'Voices, journeys and perspectives.', image: IMAGES.portrait4, icon: Users },
@@ -269,6 +270,7 @@ function StoryCreationModal({ initialCategory, onClose, onPublish }: { initialCa
 export function StoriesPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isSaved, recordViewed, retainObjectUrl, toggleSave } = useMyList();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [hoveredMapTheme, setHoveredMapTheme] = useState('');
@@ -284,9 +286,13 @@ export function StoriesPage() {
   useEffect(() => {
     const state = location.state as { studioAction?: unknown } | null;
     if (state?.studioAction !== 'studio-create-story') return;
+    if (!user) {
+      navigate('/auth', { replace: true, state: { from: location } });
+      return;
+    }
     setCreationOpen(true);
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.key, location.pathname, location.state, navigate]);
+  }, [location, navigate, user]);
 
   useEffect(() => {
     try {

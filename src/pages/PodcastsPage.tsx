@@ -35,6 +35,7 @@ import { Reveal } from '@/components/Reveal';
 import { IMAGES } from '@/data/content';
 import { useMyList } from '@/context/MyListContext';
 import { usePodcastLibrary, type PodcastEpisode } from '@/context/PodcastLibraryContext';
+import { useAuth } from '@/context/AuthContext';
 
 const categories = [
   { title: 'Conversations', description: 'Open exchanges and unexpected perspectives.', image: IMAGES.mic2, icon: Users },
@@ -822,6 +823,7 @@ function PodcastFullPlayer({ episode }: { episode: PodcastEpisode }) {
 export function PodcastsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { episodes, addEpisode } = usePodcastLibrary();
   const { recordViewed } = useMyList();
   const [activeCategory, setActiveCategory] = useState('All');
@@ -837,9 +839,28 @@ export function PodcastsPage() {
   useEffect(() => {
     const state = location.state as { studioAction?: unknown } | null;
     if (state?.studioAction !== 'studio-upload-podcast') return;
+    if (!user) {
+      navigate('/auth', { replace: true, state: { from: location } });
+      return;
+    }
     setShowUpload(true);
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.key, location.pathname, location.state, navigate]);
+  }, [location, navigate, user]);
+
+  const openUpload = () => {
+    if (!user) {
+      navigate('/auth', {
+        state: {
+          from: {
+            pathname: location.pathname,
+            state: { studioAction: 'studio-upload-podcast' },
+          },
+        },
+      });
+      return;
+    }
+    setShowUpload(true);
+  };
 
   const visibleEpisodes = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -970,7 +991,7 @@ export function PodcastsPage() {
               </div>
               <div className="podcast-library__actions">
                 <span className="podcast-episode-count">{episodes.length} {episodes.length === 1 ? 'Episode' : 'Episodes'}</span>
-                <button type="button" className="podcast-button podcast-button--dark" onClick={() => setShowUpload(true)}>
+                <button type="button" className="podcast-button podcast-button--dark" onClick={openUpload}>
                   <Upload size={15} /> Upload Podcast
                 </button>
               </div>
@@ -1066,7 +1087,7 @@ export function PodcastsPage() {
                     <a href="#podcast-categories" className="podcast-button podcast-button--dark">
                       Explore Categories <ArrowRight size={15} />
                     </a>
-                    <button type="button" className="podcast-button podcast-button--light" onClick={() => setShowUpload(true)}>
+                    <button type="button" className="podcast-button podcast-button--light" onClick={openUpload}>
                       <Upload size={15} /> Upload Podcast
                     </button>
                   </div>

@@ -16,7 +16,7 @@ export function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const routeState = location.state as { from?: { pathname?: string } } | null;
-  const destination = routeState?.from?.pathname ?? '/profile';
+  const destination = routeState?.from ?? '/profile';
   const [mode, setMode] = useState<AuthMode>(searchParams.get('mode') === 'reset' ? 'reset' : 'login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
